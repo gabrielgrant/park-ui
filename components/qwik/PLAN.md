@@ -1,15 +1,25 @@
 # @park-ui/qwik — Implementation Plan
 
 This document is **self-contained**: it assumes no prior conversation context.
-It is the single source of truth for adding Qwik support to Park UI. It is the
-downstream companion to the Ark UI Qwik plan
-(`ark/packages/qwik/PLAN.md` on branch `claude/busy-noether-lu8dvd` of
-`gabrielgrant/ark`, referred to below as **ARK-PLAN**). Read Parts 0–3 of both
-documents before writing any code.
+It is the single source of truth for adding Qwik support to Park UI, written
+so any contributor (human or AI) can pick up the work end-to-end.
 
-Every claim in Part 2 below was verified by reading the actual source of this
-repo and of `@pandacss/generator@1.8.1` (fetched from unpkg) — file and line
-references are given so they can be re-checked when versions bump.
+**Premise:** this plan assumes Panda CSS ships **first-class Qwik 2 support**
+as specified in `components/qwik/PANDA-QWIK-HANDOFF.md` ("HANDOFF") — i.e.
+`jsxFramework: 'qwik'` generates artifacts importing `@qwik.dev/core`, a
+`styled` factory whose event handling is browser-verified over SSR + resume,
+and a `createStyleContext` with the same `withRootProvider` / `withProvider` /
+`withContext` semantics as the react artifact. Part 2.1 turns that premise
+into a checkable contract; **run the contract smoke test before porting
+anything**. Until the Panda work lands upstream, develop against the fork
+described in HANDOFF Part 6 (consumed as a linked workspace or via
+`overrides`). If the premise falls through entirely, Appendix B preserves the
+fallback authoring pattern that needs nothing from Panda beyond today's 1.8.x.
+
+The upstream companion for the headless layer is the Ark UI Qwik plan
+(`ark/packages/qwik/PLAN.md` on branch `claude/busy-noether-lu8dvd` of
+`gabrielgrant/ark`, referred to below as **ARK-PLAN**). Its empirical rules
+R1–R8 still bind everything here that Panda does not cover.
 
 ---
 
@@ -69,8 +79,7 @@ The moving parts, per framework:
    - `src/utils/prompt.ts:47` — prompt options currently
      `[{ value: 'react' }, { value: 'solid' }]`
    - `src/utils/panda-config.ts` — patches user's `panda.config.ts`
-     (must learn to set `jsxFramework: 'qwik'` and inject the Qwik-2 import
-     rewrite plugin, Part 2.3)
+     (must learn to set `jsxFramework: 'qwik'`)
    - `src/utils/install.ts` — dependency install; must map Qwik deps.
 
 5. **`website/`** — Next.js docs site (React). Framework awareness:
@@ -91,38 +100,44 @@ The moving parts, per framework:
      (`installation.mdx`, quickstart guide, some `metaDescription` strings).
 
 **Distribution model consequence:** everything that lands in a user's project
-(component sources, any helper like a style-context util) must be registered
-in `registry.json` so the CLI copies it. Nothing in `components/qwik/src` may
-import from a Park-UI-internal package other than generated `styled-system`
-and published npm deps.
+(component sources, helpers) must be registered in `registry.json` so the CLI
+copies it. Nothing in `components/qwik/src` may import from a
+Park-UI-internal package other than generated `styled-system` and published
+npm deps.
 
 ---
 
 ## Part 1 — Upstream status & gating (read before scheduling anything)
 
-`@park-ui/qwik` sits on top of a **three-layer unpublished stack**:
+`@park-ui/qwik` sits on top of an unpublished stack, now four layers deep:
 
 | Layer | Repo / branch | Status |
 | --- | --- | --- |
+| Panda Qwik-2 support | `chakra-ui/panda` fork per HANDOFF | assumed per this plan's premise; verify via Part 2.1 contract |
 | `@zag-js/qwik` 1.31.1 | `gabrielgrant/zag`, branch `qwik-adapter-f` | unpublished fork; NOT on npm |
 | `@ark-ui/qwik` 0.1.0 | `gabrielgrant/ark`, branch `claude/busy-noether-lu8dvd` | Phase-0 spike: **Checkbox only**; no dist build (exports point at TS source); asChild/Portal/RootProvider absent |
 | `@park-ui/qwik` | this repo | this plan |
 
 Gates this imposes:
 
+- **G0 — the Panda contract (Part 2.1).** Nothing in Phases 1–3 starts until
+  the smoke test passes against the Panda build in use (fork or release).
 - **G1 — component coverage.** Park UI can only wrap Ark parts that exist.
   Today that is Checkbox. However, **24 of the 63 Park UI components use no
   Ark machine at all** (they need only `@ark-ui/qwik/factory`, which exists) —
   see the Wave 0 list in Part 4 Phase 3. Work is NOT serialized behind Ark's
   long tail.
-- **G2 — release.** `@park-ui/qwik` registry cannot go live on park-ui.com
-  until `@zag-js/qwik` and `@ark-ui/qwik` are published to npm and Ark's
-  library build (ARK-PLAN Step I2) is wired. Until then everything here ships
-  on branches, consumed via workspace links.
+- **G2 — release.** The `@park-ui/qwik` registry cannot go live on
+  park-ui.com until `@zag-js/qwik` and `@ark-ui/qwik` are published to npm,
+  Ark's library build (ARK-PLAN Step I2) is wired, **and** the Panda Qwik-2
+  support is in a released Panda version (users' `panda codegen` must produce
+  the same artifacts the registry components import). Until then everything
+  ships on branches.
 - **G3 — API-parity gaps flow downstream.** Per ARK-PLAN R1/R6/R7/I3:
   no `asChild`, no `RootProvider`/`Context` render-prop parts, no `Portal`,
-  callbacks are `on*$` QRLs. Part 5's translation table encodes what each gap
-  means for a Park UI wrapper file.
+  callbacks are `on*$` QRLs. These are **Ark/Qwik facts that no Panda work
+  changes**; Part 5's translation table encodes what each means for a wrapper
+  file.
 
 **Bootstrap for development (until packages publish):**
 
@@ -131,237 +146,145 @@ Gates this imposes:
 #   <parent>/park-ui   (this repo)
 #   <parent>/ark       (gabrielgrant/ark @ claude/busy-noether-lu8dvd)
 #   <parent>/zag       (gabrielgrant/zag @ qwik-adapter-f)
+#   <parent>/panda     (the HANDOFF fork, until upstream releases)
 git clone https://github.com/gabrielgrant/ark ../ark && git -C ../ark checkout claude/busy-noether-lu8dvd
 git clone https://github.com/gabrielgrant/zag ../zag && git -C ../zag checkout qwik-adapter-f
 # in ark: link zag + install per ARK-PLAN Part 1 (bun run local:sync; bun install --ignore-scripts)
 ```
 
-Then link `@ark-ui/qwik` into this workspace by adding a root `package.json`
-override pointing at `../ark/packages/qwik` (its `exports` map points at
-`src/*.ts(x)`, so Vite/qwikVite consumes the TypeScript source directly — no
-Ark build needed for development). Mirror Ark's discipline: **never commit the
-link overrides**; `git diff package.json bun.lock` must be clean before every
-commit. Add a `local:sync`/`local:revert` script pair like Ark's if the manual
-dance proves error-prone.
+Link `@ark-ui/qwik` (and the Panda fork's packages, if not yet released) into
+this workspace via root `package.json` overrides pointing at the sibling
+checkouts (`@ark-ui/qwik`'s `exports` map points at `src/*.ts(x)`, so
+Vite/qwikVite consumes the TypeScript source directly — no Ark build needed
+for development). Mirror Ark's discipline: **never commit the link
+overrides**; `git diff package.json bun.lock` must be clean before every
+commit. Add a `local:sync`/`local:revert` script pair like Ark's if the
+manual dance proves error-prone.
 
 ---
 
-## Part 2 — The styling-layer problem (the actual hard part)
+## Part 2 — The styling layer
 
-Park UI's per-framework code is thin **because Panda codegen supplies the
-heavy machinery**: the `styled` JSX factory and `createStyleContext`. For Qwik
-that machinery is partially missing and partially wrong. Findings, verified
-against `@pandacss/generator@1.8.1` source:
+### 2.1 The Panda contract (verify before building anything on it)
 
-### 2.1 Panda knows Qwik, but generates no `createStyleContext` for it
+This plan treats the following as **provided by Panda** (they are the
+acceptance criteria of HANDOFF Parts 2–5; listed here so a Park UI
+implementer can check them without reading that doc):
 
-`@pandacss/types` `config.d.ts:288`:
-`type JsxFramework = 'react' | 'solid' | 'preact' | 'vue' | 'qwik'` — so
-`jsxFramework: 'qwik'` is valid and generates `styled-system/jsx` with a
-`styled` factory, patterns, and types.
+- **PC1.** `panda codegen` with `jsxFramework: 'qwik'` emits artifacts that
+  import only `@qwik.dev/core` and typecheck in a Qwik 2 project (no
+  `@builder.io/*`, no reliance on the type-invisible legacy `h`).
+- **PC2.** `styled.<tag>` / `styled(Component, recipe)` deliver spread
+  `on*$` handlers on trusted events, **after SSR + resume**, not just CSR.
+- **PC3.** `createStyleContext(recipe)` exists in `styled-system/jsx` with
+  react-parity semantics: `withRootProvider` (no element, `defaultProps`),
+  `withProvider(Component, slot, options?)`, `withContext(Component, slot,
+  options?)`, `unstyled` prop, class-merge order incl. `_classNameMap`,
+  JSX-valued `defaultProps.children`, descriptive missing-provider error.
+- **PC4.** All of PC2/PC3 hold with the wrapped component being an
+  `@ark-ui/qwik` `component$` part, with variant-prop changes recomputing
+  classes client-side, and with zero Qwik serialization errors (Q3/Q8 class)
+  in dev mode.
+- **PC5.** Style props / the `css` prop work on styled components per the
+  package's `jsxStyleProps` mode (Park UI uses the default `'all'`), so
+  website-style usage like `<Tabs.Root bg="gray.2" size="xs">` ports 1:1.
 
-BUT in the generator's `setupJsxPatternsIndex`:
-`const styleContextExclude = ["qwik", "svelte"]` — **`createStyleContext` is
-deliberately not generated for Qwik.** Every current Park UI component file
-begins `const { withProvider, withContext } = createStyleContext(recipe)`;
-that line has no Qwik equivalent from Panda.
+**Contract smoke test (Phase 0, S1):** a checkbox written in the thin style
+of 2.2, driven against `@ark-ui/qwik`, exercised over SSR + resume in a real
+browser. Green = the premise holds and this plan applies as written. Red =
+stop; the failure is a Panda bug to report against HANDOFF acceptance
+criteria (Part 5 items 3–4 there), not something to work around here. Only
+if the Panda work is abandoned outright does Appendix B become the plan.
 
-The exclusion is not arbitrary. A generic `withProvider(Component, slot)` HOC
-must create a `component$` at runtime whose closure captures `Component`, the
-recipe function, and options. Qwik's optimizer only extracts **statically
-analyzable** `component$` calls, and QRL capture scopes must be serializable —
-a captured recipe *function* is not (ARK-PLAN R2/R3 are the same constraint
-class). This is why Part 3 prescribes an explicit per-component pattern
-instead of an HOC.
+### 2.2 The canonical component shape (thin, react/solid-parity)
 
-### 2.2 Panda's Qwik `styled` factory targets Qwik 1 and is an inline-component wrapper
-
-The generated `styled-system/jsx/factory.js` for qwik:
-- imports `h` from **`@builder.io/qwik`** — the Qwik 1 package. Ark's Qwik
-  adapter targets **Qwik 2** (`@qwik.dev/core@2.0.0-beta.x`). Mixing the two
-  packages in one app is not viable.
-- the produced component is a **plain function (inline/"lite" component) that
-  re-creates the element via `h(Element, {...forwardedProps, class})`**. This
-  is byte-for-byte the shape ARK-PLAN R1 proved broken on Qwik 2: an
-  inline-component wrapper that re-spreads props onto an inner element renders
-  correct HTML but **silently drops trusted user events** (`onClick$` etc.).
-
-Consequences:
-- The import path is fixable mechanically (2.3).
-- Whether the inline wrapper drops events **must be re-verified empirically on
-  Qwik 2** (Spike S1, Part 4). Ark's bisection tested its own wrapper, not
-  Panda's `h`-based one; do not assume either way. If events are dropped, the
-  `styled` factory may still be used for **presentation-only** elements
-  (classes/style props render fine), and event-bearing elements must be
-  written as `component$`s that spread props onto a host element directly
-  (`<ark.div {...props}>` — the pattern Ark parts already use internally).
-
-### 2.3 Fixing the Qwik-1 imports without forking Panda
-
-Panda supports a `codegen:prepare` hook that can rewrite generated artifacts
-before they are written. Ship this plugin in `components/qwik/panda.config.ts`
-(and later teach the CLI to inject it into user configs):
-
-```ts
-import { definePlugin } from '@pandacss/dev'
-
-export const qwikV2Plugin = definePlugin({
-  name: 'qwik-v2-imports',
-  hooks: {
-    'codegen:prepare': ({ artifacts }) => {
-      for (const artifact of artifacts) {
-        for (const file of artifact.files ?? []) {
-          if (typeof file.code === 'string') {
-            file.code = file.code
-              .replaceAll("'@builder.io/qwik'", "'@qwik.dev/core'")
-              .replaceAll('"@builder.io/qwik"', '"@qwik.dev/core"')
-          }
-        }
-      }
-      return artifacts
-    },
-  },
-})
-```
-
-Verify against `@pandacss/dev@1.8.1`: the exact hook payload shape
-(`artifacts` array of `{ id, files: [{ file, code }] }`) and that returning
-the mutated array is honored (Spike S0). Confirm `h` and the types the qwik
-artifact imports (`Component`, `QwikIntrinsicElements`) all exist under
-`@qwik.dev/core` v2 — `h` does exist in v2 as the classic-runtime factory, and
-`QwikIntrinsicElements` is exported, but check each identifier the generated
-files reference. **File an upstream Panda issue/PR for first-class Qwik 2
-support in parallel** (the artifact source is
-`packages/generator/src/artifacts/qwik-jsx/*` in `chakra-ui/panda`) so the
-rewrite plugin is temporary. The full requirements for that upstream work
-(Qwik-2 artifact migration, styled-factory event verdict, and a
-`createStyleContext` for Qwik) are specified in
-`components/qwik/PANDA-QWIK-HANDOFF.md`; if it lands, Part 2.4's explicit
-per-component pattern collapses back into the thin `withProvider`/
-`withContext` one-liners used by React/Solid.
-
-### 2.4 What replaces `createStyleContext`
-
-The style-context *value* is inherently Qwik-friendly: for config slot
-recipes, `recipe(variantProps)` returns a **plain record of slot → className
-strings** — fully serializable, so it can cross Qwik context without
-`noSerialize` (unlike Ark's machine `api`, ARK-PLAN R2). What cannot be
-generic is the HOC wrapper. So: write a small, **hand-authored
-`create-style-context` helper is NOT the goal** — instead each component file
-declares its own context id and explicit `component$` parts. Boilerplate is
-acceptable; it is statically analyzable, distribution-friendly (each file is
-self-contained for the registry), and idiomatic Qwik.
-
-Canonical template (this exact shape is what Spike S2 validates; adjust only
-with evidence). `components/qwik/src/components/ui/checkbox.tsx`:
+With the contract in place, a Park UI Qwik component file is the same
+shape as its Solid sibling (Solid is the closer template: `class` prop, no
+`forwardRef`, no `'use client'`). Checkbox, in full:
 
 ```tsx
-import { Checkbox as ArkCheckbox } from '@ark-ui/qwik/checkbox'
-import {
-  Slot, component$, createContextId, useContext, useContextProvider,
-  type PropsOf,
-} from '@qwik.dev/core'
-import { css, cx } from 'styled-system/css'
-import { checkbox, type CheckboxVariantProps } from 'styled-system/recipes'
+import { Checkbox, useCheckboxContext } from '@ark-ui/qwik/checkbox'
+import { component$, type PropsOf } from '@qwik.dev/core'
+import { createStyleContext, styled } from 'styled-system/jsx'
+import { checkbox } from 'styled-system/recipes'
+import type { HTMLStyledProps } from 'styled-system/types'
 
-// slot → className record; strings only, hence serializable (safe for Qwik context)
-type CheckboxSlotClasses = Record<keyof ReturnType<typeof checkbox>, string>
-const checkboxStyleContext = createContextId<CheckboxSlotClasses>('park-ui.checkbox.style')
+const { withProvider, withContext } = createStyleContext(checkbox)
 
-export interface RootProps extends PropsOf<typeof ArkCheckbox.Root>, CheckboxVariantProps {}
+export type RootProps = PropsOf<typeof Root>
+export type HiddenInputProps = PropsOf<typeof HiddenInput>
 
-export const Root = component$<RootProps>((props) => {
-  const [variantProps, restProps] = checkbox.splitVariantProps(props)
-  const classes = checkbox(variantProps)          // plain string record
-  useContextProvider(checkboxStyleContext, classes)
+export const Root = withProvider(Checkbox.Root, 'root')
+export const Control = withContext(Checkbox.Control, 'control')
+export const Label = withContext(Checkbox.Label, 'label')
+export const HiddenInput = Checkbox.HiddenInput
+// NOTE vs react/solid: no `RootProvider`, no `Group`/`GroupProvider` until
+// Ark ships them (ARK-PLAN R6 / I1); do not invent placeholders.
+
+export type { CheckboxCheckedState as CheckedState } from '@ark-ui/qwik/checkbox'
+
+// No asChild on Qwik (ARK-PLAN R1/I5): nest the svg INSIDE Indicator,
+// exactly as the Solid version does (do NOT copy the React asChild variant).
+export const Indicator = component$<HTMLStyledProps<'svg'>>((props) => {
+  const checkbox = useCheckboxContext()   // Ark store; api may be undefined pre-wake
   return (
-    <ArkCheckbox.Root {...restProps} class={cx(classes.root, props.class)}>
-      <Slot />
-    </ArkCheckbox.Root>
-  )
-})
-
-export const Control = component$<PropsOf<typeof ArkCheckbox.Control>>((props) => {
-  const classes = useContext(checkboxStyleContext)
-  return (
-    <ArkCheckbox.Control {...props} class={cx(classes.control, props.class)}>
-      <Slot />
-    </ArkCheckbox.Control>
-  )
-})
-
-export const Label = component$<PropsOf<typeof ArkCheckbox.Label>>((props) => {
-  const classes = useContext(checkboxStyleContext)
-  return (
-    <ArkCheckbox.Label {...props} class={cx(classes.label, props.class)}>
-      <Slot />
-    </ArkCheckbox.Label>
-  )
-})
-
-export const HiddenInput = ArkCheckbox.HiddenInput
-
-// No asChild on Qwik (ARK-PLAN R1/I5): nest the svg INSIDE Indicator
-// (the Solid park-ui checkbox does the same — mirror it, not the React one).
-export const Indicator = component$<PropsOf<'svg'>>((props) => {
-  const classes = useContext(checkboxStyleContext)
-  return (
-    <ArkCheckbox.Indicator class={classes.indicator}>
-      <svg
+    <Checkbox.Indicator indeterminate={checkbox?.indeterminate}>
+      <styled.svg
         viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+        strokeWidth="3px" strokeLinecap="round" strokeLinejoin="round"
         {...props}
       >
         <title>Checkmark</title>
-        <path d="M20 6 9 17l-5-5" />
-      </svg>
-    </ArkCheckbox.Indicator>
+        {checkbox?.indeterminate ? (
+          <path d="M5 12h14" />
+        ) : checkbox?.checked ? (
+          <path d="M20 6 9 17l-5-5" />
+        ) : null}
+      </styled.svg>
+    </Checkbox.Indicator>
   )
 })
 ```
 
-Open items the template deliberately leaves for the spike:
-- **Style props** (`<Checkbox.Root bg="red.3">`): the React/Solid wrappers get
-  them from Panda's `styled()`/`JsxStyleProps`. The template above supports
-  `class` + recipe variants only. Decide in S2 whether Qwik components accept
-  style props (would require routing through the `styled` factory or calling
-  `css()` on a `css` prop manually — the latter is cheap:
-  `class={cx(classes.root, css(props.css), props.class)}`, matching Panda's
-  `jsxStyleProps: 'minimal'` mode). Recommendation: support a `css` prop only
-  (`minimal`), skip full style-prop spreading; document the difference.
-- **`unstyled` prop**: React's createStyleContext supports it; carry it over
-  (skip recipe classes when set) — trivial in the explicit pattern.
-- **`indeterminate` indicator variant**: React reads
-  `useCheckboxContext()`; Ark Qwik exposes `useCheckboxContext` as a hook
-  returning the noSerialize store — verify a Park UI component may call it
-  (it must be called inside `component$`; the store's `api` may be undefined
-  pre-wake, guard like Ark parts do).
+Open details for the S1 pilot to pin down (record answers here):
+- the exact shape/reactivity of Ark Qwik's `useCheckboxContext()` return
+  (store subscription semantics per ARK-PLAN R2) and the correct
+  `undefined`-guard idiom;
+- whether `PropsOf<typeof Root>` gives usable types for
+  createStyleContext-produced components, or whether the generated
+  `StyleContext*` types should be re-exported instead;
+- `HTMLStyledProps` availability/name in the qwik `styled-system/types`.
 
-### 2.5 Non-Ark elements (`styled.div`, `ark.div` + recipe)
-
-Files like `card.tsx`, `badge.tsx` are `styled(ark.div, recipe)` in React.
-Qwik equivalent in the explicit pattern:
+Non-Ark elements stay one-liners too: `styled(ark.div, recipe)` works
+because `ark.div` is literally the string `'div'` on Qwik (ARK-PLAN R1), so
+Panda's factory receives a host tag:
 
 ```tsx
-import { ark } from '@ark-ui/qwik/factory'   // ark.div === 'div' (tag string) on Qwik
+import { ark } from '@ark-ui/qwik/factory'
+import { styled } from 'styled-system/jsx'
 import { badge } from 'styled-system/recipes'
 
-export const Badge = component$<PropsOf<'div'> & BadgeVariantProps>((props) => {
-  const [variantProps, rest] = badge.splitVariantProps(props)
-  return (
-    <ark.div {...rest} class={cx(badge(variantProps), props.class)}>
-      <Slot />
-    </ark.div>
-  )
-})
+export const Badge = styled(ark.div, badge)
+export type BadgeProps = PropsOf<typeof Badge>
 ```
 
-Because `ark.div` is literally the string `'div'` on Qwik (ARK-PLAN R1),
-`<ark.div {...rest}>` compiles to a host element — spread `on*$` props are
-wired correctly. This sidesteps the Panda-factory event question entirely for
-component files. If S1 proves Panda's `styled` factory safe, `styled` may be
-used as a convenience; if not, this pattern is mandatory and `styled` is
-reserved for zero-event presentation.
+Components with framework logic (e.g. Button's loading state + group
+variant context) wrap the styled base in a `component$`; variant-prop
+records are strings, hence serializable, so plain
+`createContextId`/`useContextProvider` replaces `createContext` from
+`@ark-ui/react/utils` with no store machinery.
+
+### 2.3 What Panda does NOT solve (Ark/Qwik facts that persist)
+
+- **No `asChild`** — restructure per the Indicator example / Part 5 table.
+- **No `RootProvider` / `Context` render-prop exports** — omit those lines;
+  document the parity gap on the website when docs land.
+- **No `Portal`** — tooltip/toast/dialog content renders inline; Ark owns
+  top-layer behavior (ARK-PLAN R7).
+- **Callback props are QRLs** — `onCheckedChange$` etc. once ARK-PLAN I3
+  lands; examples must wrap handlers in `$()`.
+- **Machine `api` access** (`useCheckboxContext()` etc.) goes through Ark's
+  noSerialize store with the pre-wake `undefined` guard.
 
 ---
 
@@ -370,17 +293,17 @@ reserved for zero-event presentation.
 ```
 components/qwik/
 ├── package.json            # private; deps: @ark-ui/qwik, @qwik.dev/core (pinned beta);
-│                           # devDeps: @pandacss/dev + presets, @park-ui/preset (ws),
-│                           # @park-ui/scripts (ws), vite, vitest, vitest-browser-qwik,
-│                           # playwright, typescript
-├── panda.config.ts         # jsxFramework: 'qwik', preset+plugin, qwikV2Plugin (2.3),
+│                           # devDeps: @pandacss/dev (Qwik-2-capable version) + presets,
+│                           # @park-ui/preset (ws), @park-ui/scripts (ws), vite, vitest,
+│                           # vitest-browser-qwik, playwright, typescript
+├── panda.config.ts         # jsxFramework: 'qwik', preset+plugin,
 │                           # staticCss.recipes:'*', globalCss colorPalette
 ├── tsconfig.json           # extends ../tsconfig.json; jsxImportSource: @qwik.dev/core
 ├── vite.config.ts          # qwikVite() + tsconfigPaths; drives dev playground + tests
 ├── vitest.browser.config.ts# copy Ark's (vitest-browser-qwik + Chromium; /opt/pw-browsers fallback)
 ├── registry.json           # generated (registry:prepare)
-├── dev/                    # tiny Qwik City (or bare qwikVite) playground app — Storybook
-│                           # has no maintained Qwik-2 framework; this replaces `storybook` script
+├── dev/                    # tiny Qwik City playground app — Storybook has no
+│                           # maintained Qwik-2 framework; this replaces `storybook`
 └── src/
     ├── components/ui/      # one file per component + index.ts barrel
     └── examples/<component>/*.tsx   # per-example source files (website code tabs)
@@ -391,13 +314,14 @@ Repo edits outside the new package:
   (workspaces glob `components/*` already matches).
 - `packages/scripts`: extend `Framework` unions + name-detection + dependency
   rewriting (react→qwik: `@ark-ui/react`→`@ark-ui/qwik`, drop `react`/
-  `react-dom` deps, `lucide-react`→ the chosen icon dep (Part 6 Q3)) in
+  `react-dom` deps, `lucide-react`→ the chosen icon dep (Part 6 Q2)) in
   `generate-registry.ts`, `generate-registry-files.ts`, and `registry.ts`'s
   `frameworks` list if still live.
 - `packages/cli`: `'qwik'` in `schema/index.ts:73`, `utils/config.ts:14,31`,
   prompt option in `utils/prompt.ts:47`; `utils/panda-config.ts` writes
-  `jsxFramework: 'qwik'` + injects the qwikV2 rewrite plugin; `utils/install.ts`
-  maps Qwik deps (`@ark-ui/qwik`, icon package).
+  `jsxFramework: 'qwik'`; `utils/install.ts` maps Qwik deps (`@ark-ui/qwik`,
+  icon package) and enforces the minimum Panda version that carries Qwik-2
+  support.
 - `website`: add `'qwik'` to `src/lib/frameworks.ts` (both the array and
   `frameworkConfigs` with `lang: 'tsx'`); `registry:build qwik` output under
   `public/registry/qwik/`; docs MDX touch-ups (`installation.mdx`,
@@ -412,86 +336,74 @@ in every touched package, tests green (`bunx vitest run` +
 `bun run test:browser` in `components/qwik`), `git diff package.json bun.lock`
 free of local-link noise, then commit.
 
-### Phase 0 — Toolchain + styling spikes (blocks everything; do in order)
+### Phase 0 — Scaffold + contract validation (small, but gates everything)
 
-**S0. Scaffold + codegen proof.**
-Do: create `components/qwik` per Part 3 inventory (no components yet); wire
-the bootstrap links (Part 1); implement `qwikV2Plugin` (2.3); run
-`bun run prepare` (panda codegen).
-Verify: generated `styled-system/jsx/factory.mjs` contains **zero**
-occurrences of `@builder.io/qwik`; `styled-system/recipes` exports `checkbox`,
-`badge`, `button` etc.; `tsc` resolves `styled-system/*` imports the same way
-react/solid packages do (no extra tsconfig paths were needed there — confirm,
-and if resolution fails, mirror however react resolves it rather than
-inventing a new mechanism).
-Done-when: typecheck of an empty `src/index.ts` passes with a
-`styled-system` import present.
+**S0. Scaffold + codegen.**
+Do: create `components/qwik` per Part 3 (no components yet); wire the
+bootstrap links (Part 1); run `bun run prepare` (panda codegen).
+Verify: `styled-system/jsx` contains `factory` **and**
+`create-style-context` files importing only `@qwik.dev/core`;
+`styled-system/recipes` exports `checkbox`, `badge`, `button`, etc.;
+`import { createStyleContext, styled } from 'styled-system/jsx'` typechecks
+(resolve `styled-system/*` the same way react/solid packages do — copy their
+mechanism, don't invent one).
+Done-when: an empty `src/index.ts` with those imports passes typecheck.
 
-**S1. Panda `styled` factory event spike (answers 2.2).**
-Do: in the dev playground, render (a) `<styled.button onClick$={...}>`,
-(b) plain `<button class={css(...)} onClick$={...}>`, (c) `styled.div` with a
-recipe. SSR the page (qwikVite dev SSR is fine) and click in a real browser
-(use the vitest-browser-qwik harness copied from Ark, or manual playground).
-Verify: does (a) fire? Does (a) fire after resume from SSR (not just CSR)?
-Done-when: a written verdict in this file (append to Part 7 log):
-either “Panda qwik styled factory wires trusted events on Qwik 2 — usable
-everywhere” or “drops events — `styled` restricted to presentation-only;
-event-bearing elements use the 2.5 pattern”. All later phases key off this.
+**S1. Contract smoke test = Checkbox pilot.**
+Do: implement `checkbox.tsx` exactly as in Part 2.2; a `dev/` playground
+route; headless + browser tests (harness copied from
+`ark/packages/qwik/vitest.browser.config.ts` and test conventions,
+ARK-PLAN Part 6).
+Verify (this is the PC1–PC5 contract check):
+1. headless SSR (`ssrRenderToDom`): recipe classes on every slot; variant
+   props change the class set; `unstyled` removes recipe classes; user
+   `class` merges in react-parity order;
+2. browser (vitest-browser-qwik, SSR + resume): click label → checked;
+   `data-state="checked"` styling applies; an `onCheckedChange$` passed from
+   the test fires (once ARK-PLAN I3 lands; until then verify a plain DOM
+   `onClick$` on `Control`);
+3. dev console free of Qwik serialization errors.
+Done-when: green, and the "open details" list in Part 2.2 is resolved and
+recorded. **Red = file against HANDOFF, do not proceed or work around.**
 
-**S2. Checkbox pilot (validates the Part 2.4 template).**
-Do: implement `checkbox.tsx` exactly as templated; decide the style-prop
-question (css-prop-minimal recommended); implement `unstyled`.
-Verify (three layers):
-1. headless SSR test (`ssrRenderToDom`): recipe classes present on every slot
-   (`root`, `control`, `label`, `indicator`), variant prop changes the class
-   set, `unstyled` removes them, user `class` merges;
-2. browser test: click label → checkbox checks → `data-state="checked"`
-   styles apply; works after SSR-resume, not only CSR;
-3. visual: dev playground page side-by-side with the React Storybook — same
-   rendering for size/variant matrix.
-Done-when: all green; template in Part 2.4 updated with any corrections
-discovered (this file is the canonical reference for Phase 3 porters).
+**S2. Button pilot (framework-logic shape).**
+Do: port `button.tsx` — `styled(ark.button, button)` base, `component$`
+wrapper for loading/spinner, `createContextId`-based ButtonGroup variant
+context, `<Slot />` for children.
+Done-when: variants + loading over SSR/resume in browser test; ButtonGroup
+propagates variant props.
 
-**S3. Button pilot (validates non-slot recipe + props-context pattern).**
-React's `button.tsx` uses `createContext` from `@ark-ui/react/utils` for
-`ButtonGroup` variant propagation plus a loading state. Qwik version: variant
-props are plain strings → a **serializable context** (`createContextId`) works
-directly, no store needed. `loading`/`spinner` slot via `<Slot name>` or
-conditional JSX.
-Done-when: Button + ButtonGroup render with variants over SSR; loading state
-toggles in browser test.
+### Phase 1 — Registry + tooling integration (parallel with S2)
 
-### Phase 1 — Registry + tooling integration (parallel with late Phase 0)
-
-**T1. `packages/scripts` framework extension.** Edits per Part 3. Note the
-generated registry items for qwik must list `@ark-ui/qwik` (not `react`) in
-`dependencies`, and component files import `@ark-ui/qwik/<component>` paths —
-the ts-morph parsing is framework-neutral, only the rewrite tables change.
+**T1. `packages/scripts` framework extension.** Edits per Part 3. Generated
+qwik registry items list `@ark-ui/qwik` in `dependencies`; component files
+import `@ark-ui/qwik/<component>` paths — the ts-morph parsing is
+framework-neutral, only the rewrite tables change.
 Done-when: `bun run --cwd components/qwik registry:prepare` emits a correct
-`registry.json` for the pilot components; `registry:build qwik` writes
-`website/public/registry/qwik/{checkbox,button,*-recipe,__init}.json` and the
-JSON diffs against react's equivalents show only expected framework deltas.
+`registry.json` for the pilots; `registry:build qwik` writes
+`website/public/registry/qwik/{checkbox,button,*-recipe,__init}.json` and
+the JSON diffs against react's equivalents show only expected framework
+deltas.
 
-**T2. CLI support.** Edits per Part 3. The `init` flow must produce a working
-Qwik City project config: `jsxFramework: 'qwik'`, rewrite plugin injected,
-`include` covering `src/**/*.{ts,tsx}`.
-Done-when: in a scratch Qwik City app (`npm create qwik@latest` → Qwik 2
-beta template), `park-ui init` (run from the local CLI build) + `park-ui add
-checkbox button` yields a compiling app rendering both components. This is
-also the end-to-end acceptance test for G2 readiness.
+**T2. CLI support.** Edits per Part 3. The `init` flow must produce a
+working Qwik City project config: `jsxFramework: 'qwik'`, Panda version
+check, `include` covering `src/**/*.{ts,tsx}`.
+Done-when: in a scratch Qwik City app (Qwik 2 beta template), `park-ui init`
+(local CLI build) + `park-ui add checkbox button` yields a compiling app
+rendering both components. This is also the end-to-end acceptance test for
+G2 readiness.
 
 **T3. Website enablement.** Add `'qwik'` to `frameworks.ts`; port the pilot
-examples to `components/qwik/src/examples/{checkbox,button}/basic.tsx` (+ the
-other example names the MDX references — grep the component MDX for
+examples to `components/qwik/src/examples/{checkbox,button}/basic.tsx` (+
+the other example names the MDX references — grep the component MDX for
 `<ComponentExample name="...">` to enumerate); verify the docs pages show a
-Qwik tab with source (tab shows disabled when a given example file is missing
-— acceptable during rollout).
+Qwik tab with source (tab renders disabled when a given example file is
+missing — acceptable during rollout).
 Done-when: `bun run web dev` shows Qwik tabs for checkbox/button.
 
-**T4. Test/dev infra.** Copy Ark's `vitest.browser.config.ts` +
-browser-test conventions (ARK-PLAN Part 6) into `components/qwik`; `dev/`
-playground with a route per component. Skip Storybook (no maintained Qwik-2
-framework package); note the gap in the PR description.
+**T4. Test/dev infra.** `dev/` playground with a route per component;
+browser-test conventions documented in the package README. Skip Storybook
+(no maintained Qwik-2 framework package); note the gap in the PR.
 
 ### Phase 2 — Wave 0: the 24 machine-free components (unblocked NOW)
 
@@ -504,23 +416,22 @@ close-button     code        display-value  group   heading  icon
 icon-button      image       input-addon    input-group     kbd
 link             loader      skeleton   span      spinner   table  text
 ```
-(*button lands in Phase 0 S3; input/textarea/fieldset/field are NOT here —
+(*button lands in Phase 0 S2; input/textarea/fieldset/field are NOT here —
 they import `@ark-ui/react/field`.)
 
-Port using the 2.5 pattern (recipe or slot-recipe + explicit `component$`).
-Some use React-only idioms to translate per Part 5 (e.g. `alert.tsx`,
-`breadcrumb.tsx` use slot recipes + createStyleContext → 2.4 pattern;
-`group.tsx` uses props context → S3 pattern). Add each to the ui barrel,
-examples for each MDX-referenced example name, registry regen.
-Done-when: all 24 in `registry.json`, typecheck/lint/tests green, docs tabs
-populated.
+Most are `styled(ark.tag, recipe)` one-liners or
+`createStyleContext`-over-slot-recipe files (alert, breadcrumb, card) —
+straight ports via the Part 5 table. `group.tsx` uses props-context → the
+S2 Button pattern. Add each to the ui barrel, port the MDX-referenced
+examples, regenerate the registry.
+Done-when: all 24 in `registry.json`, gates green, docs tabs populated.
 
 ### Phase 3 — Machine components (gated per-component on Ark, G1)
 
 Track `ark/packages/qwik` — as each Ark component lands (ARK-PLAN Phase 3
 order), port its Park UI wrapper in the same order:
 
-1. checkbox (done in S2) → field, fieldset → **input, textarea** (field-scoped)
+1. checkbox (done in S1) → field, fieldset → **input, textarea** (field-scoped)
 2. switch, radio-group, radio-card-group, toggle-group, segment-group,
    rating-group
 3. progress, avatar, clipboard
@@ -530,41 +441,38 @@ order), port its Park UI wrapper in the same order:
 7. menu, select, combobox
 8. tags-input, file-upload, scroll-area
 9. date-picker, color-picker      ← need Ark's value-serializer registration
-10. dialog, drawer                ← withRootProvider pattern; see note below
+10. dialog, drawer                ← withRootProvider case; see note below
 11. carousel, pagination, toast   ← toast uses Portal in React: render inline
-```
 
 Per-component workflow: open the React AND Solid versions of the wrapper
-side-by-side (Solid is usually closer — no forwardRef, no asChild in several
-places); apply Part 5 translations; recipe stays untouched; examples ported
-from react's `src/examples/<x>/` minus React idioms; registry regen; three
-test layers as in S2 (SSR classes, browser interaction, playground visual).
+side-by-side (Solid is usually closer — `class`, no forwardRef, several
+already avoid asChild); apply Part 5 translations; recipe stays untouched;
+examples ported from react's `src/examples/<x>/` minus React idioms;
+registry regen; the S1 three-layer verification (SSR classes, browser
+interaction, playground visual vs React Storybook).
 
-**Dialog/Drawer note:** React uses `withRootProvider(Dialog.Root)` — a
-provider that renders **no element** and takes no slot class. In the explicit
-pattern that is simply: Root `component$` computes slot classes, provides
-context, renders `<ArkDialog.Root {...rest}><Slot/></ArkDialog.Root>` with no
-class of its own. `ActionTrigger` (React: `useDialogContext()` +
-`onClick={() => dialog.setOpen(false)}`) must go through Ark Qwik's
-`useDialogContext()` store and a `$`-wrapped handler; if the Ark hook isn't
-exported by then, that's an upstream ask, not a local hack.
+**Dialog/Drawer note:** `withRootProvider(Dialog.Root, { defaultProps })`
+ports directly under PC3. `ActionTrigger` (React: `useDialogContext()` +
+`onClick={() => dialog.setOpen(false)}`) becomes a `component$` using Ark
+Qwik's `useDialogContext()` store and a `$`-wrapped handler; if the Ark hook
+isn't exported by then, that's an upstream ask against ARK-PLAN, not a local
+hack.
 
 ### Phase 4 — Docs, release, upstreaming
 
 - `installation.mdx` / quickstart: add Qwik install command
   (`npm install @ark-ui/qwik <icon-dep>`) and a Qwik City quickstart repo
-  under the org's `park-ui-examples` (mirror however react/solid quickstarts
-  are wired in `quickstart-guide.tsx`).
+  (mirror how react/solid quickstarts are wired in `quickstart-guide.tsx`);
+  note the minimum Panda version.
 - Sweep MDX `metaDescription`/prose for "React, Vue or Solid" strings.
 - Registry deploy: `registry:build qwik` added to the website build pipeline
   (wherever react/solid builds run — check `website` `package.json` and CI).
-- Release gates (G2): `@zag-js/qwik` published; `@ark-ui/qwik` published with
-  dist build; only then flip the CLI prompt + website `frameworks.ts` in a
-  release; before that, both changes can be merged behind the fact that the
-  registry JSON simply isn't deployed.
-- Upstream: Panda PR for Qwik-2 imports (and propose `createStyleContext`
-  un-exclusion is NOT pursued — document why, per 2.1); Ark asks recorded in
-  ARK-PLAN (utils exports, hooks exports).
+- Release gates (G0+G2): Panda Qwik-2 support released; `@zag-js/qwik`
+  published; `@ark-ui/qwik` published with dist build. Only then flip the
+  CLI prompt + website `frameworks.ts` in a release; both changes can merge
+  earlier since the registry JSON simply isn't deployed.
+- Changeset/README: Qwik-2-beta peer pins, no-Portal/top-layer semantics,
+  omitted RootProvider/Context, asChild status.
 
 ---
 
@@ -573,31 +481,28 @@ exported by then, that's an upstream ask, not a local hack.
 | React wrapper idiom | Qwik replacement |
 | --- | --- |
 | `'use client'` banner | delete (Qwik has no directive) |
-| `createStyleContext(recipe)` / `withProvider` / `withContext` | explicit pattern, Part 2.4: `createContextId` + `component$` per part; context value = serializable slot-class record |
-| `withRootProvider(X)` (no element/slot) | Root `component$` provides context, renders Ark Root bare |
-| `styled(ark.tag, recipe)` | `component$` + `<ark.tag {...rest} class={cx(recipe(v), css(props.css), props.class)}>` (2.5) — or Panda `styled` if S1 verdict allows |
-| `forwardRef` / `ref` | delete; Qwik `ref` is an ordinary prop (Signal or function) that flows through the spread |
-| `ComponentProps<typeof X>` | `PropsOf<typeof X>` from `@qwik.dev/core` |
-| `className` | `class` |
-| `asChild` (e.g. checkbox Indicator, defaultProps children) | restructure: nest the element as a child of the Ark part (mirror the **Solid** wrapper), or spread part props manually via Ark's `useX()` hook; never emit `asChild` |
+| `createStyleContext` / `withProvider` / `withContext` / `withRootProvider` | **same calls** from the qwik `styled-system/jsx` (PC3) |
+| `styled(ark.tag, recipe)`, `styled.div` | **same calls** (PC2); `ark` from `@ark-ui/qwik/factory` |
+| `forwardRef` / `ref` | delete the machinery; Qwik `ref` is an ordinary prop that flows through the spread |
+| `ComponentProps<typeof X>` | `PropsOf<typeof X>` from `@qwik.dev/core` (S1 confirms this works on styled components) |
+| `className` | `class` (accepting both is a factory concern, not the wrapper's) |
+| `asChild` (checkbox Indicator, triggers, etc.) | restructure: nest the element as a child of the Ark part (mirror the **Solid** wrapper); never emit `asChild` |
 | `<Portal>` (tooltip, toast) | delete — render inline; Ark Qwik handles top-layer natively (ARK-PLAN R7) |
-| `options.defaultProps.children` JSX (icons) | inline the JSX inside the part's `component$` body, overridable via `<Slot>` presence check where needed |
-| `onX={fn}` event/callback props | `onX$` QRLs; when Ark's I3 convention lands, wrapper passes `on*$` through untouched |
-| `useMemo`, `mergeProps` from react | plain expressions; Qwik re-renders are scheduler-driven |
-| `createContext` from `@ark-ui/react/utils` | `createContextId` + `useContextProvider`/`useContext` (values must be serializable — variant-prop records are) |
+| `options.defaultProps` incl. JSX children (accordion icon) | same — PC3 guarantees it; covered by HANDOFF test V3-d |
+| `onX={fn}` event/callback props | `onX$` QRLs; wrappers pass `on*$` through untouched once ARK-PLAN I3 lands |
+| `useMemo`, react `mergeProps` | plain expressions |
+| `createContext` from `@ark-ui/react/utils` | `createContextId` + `useContextProvider`/`useContext` inside `component$` (values must be serializable — variant-prop records are) |
 | `useXContext()` from `@ark-ui/react/<x>` | Ark Qwik's `useXContext()` — returns the noSerialize store; **guard for `undefined` api** pre-wake |
-| conditional children (`checked ? <A/> : <B/>`) | same JSX, but any data read from the machine api needs the undefined guard |
-| `lucide-react` icons | Part 6 Q3 decision (inline SVG by default) |
-| `key={...}` in maps | `key` works the same in Qwik |
-| `HTMLStyledProps<'div'>` | `PropsOf<'div'> & { css?: SystemStyleObject }` if the minimal css-prop route is taken |
+| conditional children reading machine state | same JSX + the undefined guard |
+| `lucide-react` icons | Part 6 Q2 decision (inline SVG by default) |
+| `props.children` passthrough in a `component$` | `<Slot />` |
 
-Checklist per file (a less-capable implementer should follow literally):
+Checklist per file (follow literally):
 1. `cp` the React file to `components/qwik/src/components/ui/<x>.tsx`.
 2. Open the Solid version alongside; wherever React and Solid differ, prefer
    the Solid shape.
 3. Apply every row of the table above, top to bottom.
-4. Export types matching the React file's exported type names (`RootProps`
-   etc.) so docs/typedoc stay uniform.
+4. Export the same public type names as the React file (`RootProps` etc.).
 5. Add to `src/components/ui/index.ts` (same export style as react's barrel —
    ts-morph parses it for the registry).
 6. Port examples; run `registry:prepare`; run the full gate.
@@ -606,40 +511,86 @@ Checklist per file (a less-capable implementer should follow literally):
 
 ## Part 6 — Open questions (decide before the phase that needs them)
 
-1. **S1 verdict** (Panda styled factory events on Qwik 2) — gates whether
-   `styled` appears anywhere in shipped component files. Needed: Phase 0.
-2. **Style-prop surface** — recommendation: `css` prop only (minimal), no
-   full style-prop spreading; makes wrappers cheap and keeps the explicit
-   pattern viable. Must be decided at S2 and then applied uniformly; document
-   the divergence from React/Solid on the website.
-3. **Icon dependency** — `lucide-react` has no Qwik build. Options:
-   (a) inline the 2–3 needed SVG paths per component (checkbox check,
-   chevron, etc.) — zero deps, matches how `checkbox.Indicator` already
-   inlines its svg; (b) `@qwikest/icons` (community, includes Lucide set) —
-   verify Qwik-2 compatibility first. Recommendation: (a) for component
-   files, revisit for examples. Needed: Wave 0 (accordion port).
-4. **Qwik City vs bare Vite for the dev playground** — bare `qwikVite` is
-   lighter; City exercises SSR-streaming closer to real apps. Recommendation:
-   City, matching what users scaffold. Needed: T4.
-5. **`@qwik.dev/core` pinning** — pin exactly (same version as Ark:
+1. **Panda availability/versioning (G0/G2)** — which Panda build Phase 0
+   runs against (fork vs release), and the minimum released version the CLI
+   should enforce. Needed: S0, revisit at Phase 4.
+2. **Icon dependency** — `lucide-react` has no Qwik build. Options:
+   (a) inline the needed SVG paths per component (zero deps; the Indicator
+   in 2.2 already does this); (b) `@qwikest/icons` (community, includes a
+   Lucide set) — verify Qwik-2 compatibility first. Recommendation: (a) for
+   component files, revisit for examples. Needed: Wave 0 (accordion port).
+3. **Qwik City vs bare Vite for the dev playground** — City exercises
+   SSR-streaming closer to real apps; recommendation: City. Needed: T4.
+4. **`@qwik.dev/core` pinning** — pin exactly (same version as Ark:
    `2.0.0-beta.36` at time of writing) and bump in lockstep with Ark
-   (ARK-PLAN P5 risk: internal APIs used by the Zag adapter).
-6. **Vue precedent** — `components/vue` is a stub (badge only) not yet in
+   (ARK-PLAN P5 risk: Zag adapter uses internals).
+5. **Vue precedent** — `components/vue` is a stub not yet in
    `frameworks.ts`; if Vue enablement PRs land first, crib their
-   scripts/CLI/website diffs instead of re-deriving them from this Part 3
-   list.
+   scripts/CLI/website diffs instead of re-deriving them from Part 3.
 
 ## Part 7 — Verification quick reference + decision log
 
 ```bash
 cd components/qwik
-bun run prepare            # panda codegen (must be rerun after preset/recipe changes)
+bun run prepare            # panda codegen (rerun after preset/recipe changes)
 bun run typecheck && bun run lint
 bunx vitest run            # headless SSR suite
 bun run test:browser       # Chromium interaction suite (vitest-browser-qwik)
 bun run registry:prepare && bun run registry:build qwik
 ```
 
-Decision log (append findings here; each spike's verdict is a dated entry):
+Decision log (append dated entries; S1's contract verdict lands here first):
 
-- _(empty — S0/S1/S2/S3 verdicts land here)_
+- _(empty)_
+
+---
+
+## Appendix B — Fallback authoring pattern (only if the Panda premise dies)
+
+If the HANDOFF work is abandoned and stock Panda (≤1.8.x) must be used:
+Panda generates **no `createStyleContext` for qwik**
+(`styleContextExclude = ["qwik","svelte"]`), its qwik artifacts import Qwik 1
+(`@builder.io/qwik` — patchable via a `codegen:prepare` plugin string-replace
+to `@qwik.dev/core`), and its `styled` factory is an inline-component wrapper
+with an unverified-but-likely event-dropping bug on Qwik 2 (ARK-PLAN R1
+class). The workable pattern then is explicit per-component `component$`s
+with a serializable slot-class context — no HOCs, no Panda `styled` on
+event-bearing elements:
+
+```tsx
+import { Checkbox as ArkCheckbox } from '@ark-ui/qwik/checkbox'
+import { Slot, component$, createContextId, useContext, useContextProvider,
+  type PropsOf } from '@qwik.dev/core'
+import { cx } from 'styled-system/css'
+import { checkbox, type CheckboxVariantProps } from 'styled-system/recipes'
+
+type SlotClasses = Record<keyof ReturnType<typeof checkbox>, string>
+const styleCtx = createContextId<SlotClasses>('park-ui.checkbox.style')
+
+export const Root = component$<PropsOf<typeof ArkCheckbox.Root> & CheckboxVariantProps>((props) => {
+  const [variantProps, rest] = checkbox.splitVariantProps(props)
+  const classes = checkbox(variantProps)          // slot → className strings: serializable
+  useContextProvider(styleCtx, classes)
+  return (
+    <ArkCheckbox.Root {...rest} class={cx(classes.root, props.class)}>
+      <Slot />
+    </ArkCheckbox.Root>
+  )
+})
+
+export const Control = component$<PropsOf<typeof ArkCheckbox.Control>>((props) => {
+  const classes = useContext(styleCtx)
+  return (
+    <ArkCheckbox.Control {...props} class={cx(classes.control, props.class)}>
+      <Slot />
+    </ArkCheckbox.Control>
+  )
+})
+// ...Label, Indicator (nested svg), HiddenInput as in 2.2's Indicator...
+```
+
+Costs vs the main plan: ~10× the per-component code, no style props (offer a
+`css` prop via `css(props.css)` if needed), a per-file context id, and a
+divergent manual-installation story on the website. Everything else in this
+plan (registry, CLI, website, waves, translation table minus the two
+"same calls" rows) applies unchanged.

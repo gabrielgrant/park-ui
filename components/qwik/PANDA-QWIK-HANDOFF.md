@@ -99,6 +99,28 @@ is never the context value, it is the HOC mechanics (Part 4.3).
 artifact file contents before writing. Park UI's interim plan uses it to
 string-replace `@builder.io/qwik` → `@qwik.dev/core` in generated files.
 That workaround is the thing this upstream work makes unnecessary.
+Signature verified against `@pandacss/types@1.8.1` `hooks.d.ts`:
+`'codegen:prepare': (args: { artifacts: Artifact[], original?: Artifact[],
+changed: ArtifactId[] | undefined }) => MaybeAsync<void | Artifact[]>` with
+`Artifact = { id, dir?, files: { file: string, code: string | undefined }[] }`.
+
+**F7.** The **solid** and **vue** `createStyleContext` artifacts
+(`packages/generator/src/artifacts/{solid,vue}-jsx/create-style-context.ts`)
+are closer porting references than react's in two respects: solid's uses
+the `class` prop (as Qwik does) and has no `forwardRef`, and both show how
+the same behavioral contract is re-expressed in a non-React reactivity
+model. Read them alongside Appendix A before designing.
+
+**F8.** The `styled-system/` output is emitted as `.mjs`/`.js` (per the
+config's `outExtension` / `forceConsistentTypeExtension`), not `.tsx`.
+Design C's artifacts want to call `component$` — **whether `qwikVite`'s
+optimizer transforms `$`-calls in plain `.mjs` files under `styled-system/`
+is unverified** and load-bearing. Spike V1 must include this check (build a
+Qwik 2 app whose `component$` lives in a generated-style `.mjs` file and
+confirm QRL extraction happens; if not, the qwik artifacts need an
+extension/inclusion strategy the plan must specify — e.g. emitting the
+style-context artifact so the optimizer processes it, or documenting a
+required vite include).
 
 ---
 
@@ -110,11 +132,24 @@ import only `@qwik.dev/core` and typecheck in a Qwik 2 app.
 Requirements:
 
 - **A1.** All qwik-jsx artifact templates switch imports to
-  `@qwik.dev/core`. Verify each referenced identifier exists in v2 and has
-  compatible semantics — at minimum: `h`, `Component`,
-  `QwikIntrinsicElements`, plus whatever the types artifacts reference.
-  Where v2 renamed or changed a type (e.g. prefer `PropsOf`/`JSXOutput`
-  where v1 types are gone), update the generated types accordingly.
+  `@qwik.dev/core` — **and off `h`**. Verified against
+  `@qwik.dev/core@2.0.0-beta.36`: `h`/`createElement` still exist at runtime
+  and in `core-internal.d.ts` (documented as "the legacy transform,
+  @public"), but they are **absent from `public.d.ts`**, the package's `.`
+  types entry — so `import { h } from '@qwik.dev/core'` typechecks as an
+  error even though it runs (worth filing as a Qwik issue, but don't depend
+  on the fix). Migrate the factory to
+  `jsx(type, props, key?)` — note the signature change: `h(type, props,
+  ...children)` takes varargs children, `jsx` expects **children inside
+  props** (`jsx(Element, { ...rest, class, children }, key)`), so the
+  factory's render call must move `children ?? combinedProps.children` into
+  the props object.
+  Confirmed present in the v2 public surface (safe to generate against):
+  `jsx`, `Fragment`, `Component`, `FunctionComponent`, `PropsOf`,
+  `QwikIntrinsicElements`, `QwikHTMLElements`, `QwikSVGElements`,
+  `JSXOutput`, `JSXChildren`, `ContextId`, `createContextId`, `Slot`,
+  `useContext`, `useContextProvider`, `component$`, `noSerialize`. Anything
+  else the artifacts reference must be re-verified against `public.d.ts`.
 - **A2. Back-compat decision (make explicitly, document in the PR):** Panda
   1.x users may exist on Qwik 1. Options:
   (a) hard-switch `'qwik'` to v2 (breaking; simplest; arguably fine since
@@ -347,6 +382,9 @@ recorded fallback.
   with `const make = (Cmp, s) => component$((p) => {...})` capturing a
   component ref + string; SSR + resume + click. Answers C3 and the
   component-ref-serializability half of C2. ~1 hour, decides D1 vs D2.
+  Include the F8 check: put the same code in a plain `.mjs` file imported
+  from the app (simulating generated `styled-system` output) and confirm
+  the optimizer still extracts the QRLs.
 - **V2:** The Workstream B event spike (Part 3) — shared prerequisite.
 - **V3:** Hand-write (no codegen yet) the chosen design as a static
   `create-style-context.tsx` in a Qwik 2 sandbox app and drive it with
@@ -567,4 +605,7 @@ const Component = function Component(props) {
 
 The `styled` export is a Proxy caching `styledFn(el)` per tag. This is the
 inline-wrapper shape ARK-PLAN R1 indicts; V2 tests it as-is on Qwik 2 before
-any redesign.
+any redesign. Note the A1 finding applies here directly: the `h(Element,
+props, children)` call must become `jsx(Element, { ...props, children },
+key)` on Qwik 2 — `h` runs but no longer typechecks against the public
+surface, and children move into the props object.
