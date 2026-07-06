@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@qwik.dev/core",
+    // @ark-ui/qwik and @zag-js/* are consumed as TypeScript source (their
+    // exports point at src), so their files are part of this program and must
+    // check under these options; zag needs DOM.Iterable and does not follow
+    // noPropertyAccessFromIndexSignature.
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "noPropertyAccessFromIndexSignature": false,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["**.ts", "**/*.tsx"],
+  "exclude": ["e2e", "scripts", "node_modules"]
+}

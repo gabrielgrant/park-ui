@@ -541,7 +541,38 @@ bun run registry:prepare && bun run registry:build qwik
 
 Decision log (append dated entries; S1's contract verdict lands here first):
 
-- _(empty)_
+- **2026-07-06 — S0 done; S1 contract verdict: Panda side GREEN, one upstream
+  Ark/Zag blocker.** Panda branch used:
+  `gabrielgrant/panda@claude/panda-qwik-v2-support-3nl3s5` (Qwik-2 artifacts,
+  generated `createStyleContext`, `jsx()` runtime calls). Results per PC:
+  - PC1 ✓ codegen emits `@qwik.dev/core`-only artifacts incl.
+    `jsx/create-style-context.qwik.mjs` (the `.qwik` infix is required so the
+    Qwik optimizer transforms the file); `tsc` clean.
+  - PC2 ✓ `styled.*` spread `on*$` handlers fire (CSR browser suite here;
+    SSR+resume proven in the Panda repo's own spike/e2e).
+  - PC3 ✓ headless suite: slot classes on all parts, variant recompute,
+    `unstyled`, class-merge order, `defaultProps` incl. JSX children,
+    missing-provider error.
+  - PC4 ✓/⚠ styled Ark `component$` parts: CSR interaction green incl.
+    `onCheckedChange$` through the styled Root; over dev SSR + resume the
+    styling layer is green (classes in SSR HTML, client-side variant
+    recompute through context) but the Zag machine itself fails to wake,
+    reproduced with a BARE `@ark-ui/qwik` checkbox, zero Panda code
+    (`dev/routes/bare`): resume deserialization throws `TypeError: Cannot
+    convert undefined or null to object` in `getOrCreateStore`. Filed
+    against ARK-PLAN Part 5; not a Panda/Park issue. `e2e/checkbox.e2e.mjs`
+    probes the bare checkbox and skips machine-interaction scenarios while
+    the upstream bug stands.
+  - PC5 ✓ style props (`mx="2"` etc.) and the `css` prop resolve on styled
+    and style-context components (`jsxStyleProps: 'all'`).
+  Open details from 2.2 resolved: `useCheckboxContext()` returns the api or
+  `undefined` pre-wake (guard with `api?.`); `PropsOf<typeof Root>` works for
+  createStyleContext-produced components; `HTMLStyledProps` exists in
+  `styled-system/types` as on react. Local bootstrap: `@ark-ui/qwik` is an
+  optional peer plus a `scripts/local-qwik-sync.mjs` symlink (bun `overrides`
+  to `file:` targets outside the workspace do not install transitive deps);
+  zag and ark each need their own installs first so real-path resolution
+  works. `checkbox.tsx` landed in the thin 2.2 shape; Appendix B not needed.
 
 ---
 

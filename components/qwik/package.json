@@ -1,0 +1,41 @@
+{
+  "name": "@park-ui/qwik",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "codegen": "panda codegen --clean --silent",
+    "dev": "vite --mode ssr",
+    "lint": "biome lint ./src",
+    "typecheck": "node scripts/ensure-panda-qwik.mjs tsc",
+    "test": "node scripts/ensure-panda-qwik.mjs vitest run",
+    "test:browser": "node scripts/ensure-panda-qwik.mjs vitest run --config vitest.browser.config.ts",
+    "e2e": "node e2e/checkbox.e2e.mjs"
+  },
+  "exports": {
+    ".": "./src/components/ui/index.ts"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "1.11.4",
+    "@pandacss/preset-base": "1.11.4",
+    "@pandacss/preset-panda": "1.11.4",
+    "@park-ui/preset": "workspace:*",
+    "@qwik.dev/core": "2.0.0-beta.36",
+    "@qwik.dev/router": "2.0.0-beta.36",
+    "@vitest/browser": "4.1.8",
+    "@vitest/browser-playwright": "4.1.8",
+    "playwright": "1.58.0",
+    "typescript": "5.9.3",
+    "vite": "7.2.6",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "4.1.8",
+    "vitest-browser-qwik": "0.3.8"
+  },
+  "peerDependencies": {
+    "@ark-ui/qwik": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@ark-ui/qwik": {
+      "optional": true
+    }
+  }
+}

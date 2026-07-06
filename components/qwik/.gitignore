@@ -1,0 +1,6 @@
+# qwik dev server output
+server
+dummy-non-existing-folder
+dist
+tmp
+*.tsbuildinfo
