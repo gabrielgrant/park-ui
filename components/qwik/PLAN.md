@@ -233,7 +233,12 @@ artifact imports (`Component`, `QwikIntrinsicElements`) all exist under
 files reference. **File an upstream Panda issue/PR for first-class Qwik 2
 support in parallel** (the artifact source is
 `packages/generator/src/artifacts/qwik-jsx/*` in `chakra-ui/panda`) so the
-rewrite plugin is temporary.
+rewrite plugin is temporary. The full requirements for that upstream work
+(Qwik-2 artifact migration, styled-factory event verdict, and a
+`createStyleContext` for Qwik) are specified in
+`components/qwik/PANDA-QWIK-HANDOFF.md`; if it lands, Part 2.4's explicit
+per-component pattern collapses back into the thin `withProvider`/
+`withContext` one-liners used by React/Solid.
 
 ### 2.4 What replaces `createStyleContext`
 
