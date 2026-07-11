@@ -152,14 +152,18 @@ git clone https://github.com/gabrielgrant/zag ../zag && git -C ../zag checkout q
 # in ark: link zag + install per ARK-PLAN Part 1 (bun run local:sync; bun install --ignore-scripts)
 ```
 
-Link `@ark-ui/qwik` (and the Panda fork's packages, if not yet released) into
-this workspace via root `package.json` overrides pointing at the sibling
-checkouts (`@ark-ui/qwik`'s `exports` map points at `src/*.ts(x)`, so
-Vite/qwikVite consumes the TypeScript source directly — no Ark build needed
-for development). Mirror Ark's discipline: **never commit the link
-overrides**; `git diff package.json bun.lock` must be clean before every
-commit. Add a `local:sync`/`local:revert` script pair like Ark's if the
-manual dance proves error-prone.
+Linking is done by `bun run local:sync` (`packages/scripts/src/local-sync.ts`)
+— pure post-install **symlinks**, no package.json/lockfile mutation (bun's
+`file:`/`link:` overrides proved unable to resolve two levels of unpublished
+indirection; see the 2026-07-11 decision-log entry). Requirements it checks:
+`../zag` must be `pnpm install`ed (zag packages resolve each other at real
+paths), `../ark-qwik` is a plain worktree (its `node_modules` is a generated
+symlink farm), and `../panda` must be built. `@ark-ui/qwik` is intentionally
+NOT in components/qwik's `dependencies` — the committed tree installs cleanly
+from npm; the symlink satisfies module resolution during development. Qwik
+codegen runs the Panda fork CLI directly via `bun run qwik prepare:local`
+(the npm `@pandacss/dev` stays for types/other frameworks). Re-run
+`local:sync` after any `bun install`.
 
 ---
 
@@ -541,7 +545,67 @@ bun run registry:prepare && bun run registry:build qwik
 
 Decision log (append dated entries; S1's contract verdict lands here first):
 
-- _(empty)_
+- **2026-07-11 — S0 complete.** Panda fork branch
+  `claude/panda-qwik-v2-support-3nl3s5` (v1.11.4) generates the qwik
+  artifacts with zero `@builder.io/*` imports, `create-style-context.qwik.mjs`
+  exported from `styled-system/jsx`, and `HTMLStyledProps`/`ComponentProps`
+  types that typecheck. Codegen runs via the fork CLI directly
+  (`prepare:local`) because bun cannot install the fork's workspace-linked
+  CLI (transitive `require` fails from bun's store copies).
+- **2026-07-11 — linking strategy.** bun `overrides` with `file:` paths fail
+  for two-level unpublished stacks (the linked `@ark-ui/qwik`'s own `@zag-js`
+  deps never install; `link:` resolves to bun's global link registry).
+  Replaced with pure post-install symlinks (`local:sync`) + real-path
+  resolution: zag pnpm-installed, `../ark-qwik/node_modules` symlink farm,
+  `resolve.dedupe: ['@qwik.dev/core']` in vite configs to prevent duplicate
+  Qwik runtimes.
+- **2026-07-11 — vite dep-optimizer hazard (affects every future consumer of
+  TS-source Qwik libs).** vite pre-bundles node_modules deps with esbuild,
+  bypassing the Qwik optimizer — `$()` QRLs in `@ark-ui/qwik`/`@zag-js/qwik`
+  reach the browser untransformed ("Optimizer should replace all usages of
+  $()"), context breaks, and results flip with `.vite` cache state (this
+  masqueraded as test flakiness). Fix: `optimizeDeps.exclude:
+  ['@ark-ui/qwik', '@zag-js/qwik']` in both vite configs. The published
+  `@ark-ui/qwik` build (ARK-PLAN I2) should ship optimizer-processed output
+  or a `qwik` package.json field so consumers don't need this.
+- **2026-07-11 — S1 CONTRACT VERDICT: GREEN (with one upstream, non-Panda
+  exception).** Thin `withProvider`/`withContext` checkbox works: PC1 ✓
+  (codegen+typecheck); PC2 ✓ CSR — trusted clicks through the styled wrappers
+  drive the machine, and the panda `styled.<tag>` factory (the inline-wrapper
+  shape ARK-PLAN R1 indicted) DOES deliver spread `on*$` handlers in the
+  browser (styled-factory.browser.test.tsx); PC3 ✓ (slot classes on all
+  parts, variants, `unstyled`, user-class merge — SSR-verified); PC4 ✓
+  client-side variant recompute + the style context itself survives
+  SSR+resume with no serialization errors (ssr-resume.browser.test.tsx);
+  PC5 ✓ style props on styled elements. Part 2.2's open details resolved:
+  `ComponentProps` from `styled-system/types` types the produced components;
+  the Indicator uses two Ark Indicators (default + `indeterminate`) with
+  static svgs — no context hook, correct pre-wake.
+- **2026-07-11 — UPSTREAM BUG (ark/zag, blocks PC2-over-resume for machine
+  components).** Machine interaction after SSR+resume fails: the zag qwik
+  adapter's wake path crashes deserializing state
+  (`TypeError: Cannot convert undefined or null to object` in
+  `isSerializableObject` ← `getOrCreateStore` ← `allocate`, @qwik.dev/core
+  inflate) and parts never re-render (`data-state` stays stale). Reproduced
+  in the ark repo's own harness (worktree of `claude/busy-noether-lu8dvd`,
+  zag fork at 1.42.0) with a 12-line `renderSSR` test — **zero panda
+  involvement**. ARK-PLAN's Part-0 table already flagged interaction as
+  CSR-only-verified; this is its risk #2 materializing. Additionally, when
+  zag sources resolve from outside the vite root, the wake QRL segment
+  request 404s (`machine.ts_useMachine_wake_*.js` under `/@fs/`). Both repro
+  tests are kept as `it.skip` in
+  `src/components/ui/tests/ssr-resume.browser.test.tsx` and
+  `checkbox.browser.test.tsx` (`it.fails` is unusable — the crashed Qwik
+  container's retry loop wedges the vitest runner). Un-skip when the
+  upstream fix lands. Until then, CSR interaction + SSR rendering are fully
+  verified; machine-driven SSR+resume interaction is the one open gap.
+- **2026-07-11 — S2 complete.** Button/ButtonGroup/Group/Spinner ported:
+  `styled(ark.button, button)` base, `component$` wrapper for loading state,
+  `createContextId`-based variant propagation (serializable record — no
+  store needed). Note the Qwik `<Slot>`-cannot-be-conditional constraint:
+  loading hides children via a `hidden` `display:contents` span instead of
+  React's branch logic. User `onClick$` through the full chain
+  (component$ prop → styled inline wrapper → host element) browser-verified.
 
 ---
 

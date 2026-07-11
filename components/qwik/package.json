@@ -1,0 +1,40 @@
+{
+  "name": "@park-ui/qwik",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "prepare": "panda codegen --clean --silent",
+    "prepare:local": "node ../../../panda/packages/cli/bin.js codegen --clean",
+    "dev": "vite dev ./dev",
+    "lint": "biome lint ./src",
+    "typecheck": "tsc",
+    "test": "vitest",
+    "test:ci": "vitest --run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "registry:prepare": "scripts registry prepare --name @park-ui/qwik",
+    "registry:build": "scripts registry build qwik"
+  },
+  "exports": {
+    "./examples": "./src/examples/index.ts",
+    ".": "./src/components/ui/index.ts"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "1.8.1",
+    "@pandacss/preset-base": "1.8.1",
+    "@pandacss/preset-panda": "1.8.1",
+    "@park-ui/preset": "workspace:*",
+    "@park-ui/scripts": "workspace:*",
+    "@qwik.dev/core": "2.0.0-beta.36",
+    "@vitest/browser": "4.1.8",
+    "@vitest/browser-playwright": "4.1.8",
+    "playwright": "1.58.0",
+    "typescript": "5.9.3",
+    "vite": "8.0.16",
+    "vite-tsconfig-paths": "6.0.5",
+    "vitest": "4.1.8",
+    "vitest-browser-qwik": "0.3.8"
+  },
+  "peerDependencies": {
+    "@qwik.dev/core": ">=2.0.0-beta.0"
+  }
+}
