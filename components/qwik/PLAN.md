@@ -6,7 +6,7 @@ so any contributor (human or AI) can pick up the work end-to-end.
 
 **Premise:** this plan assumes Panda CSS ships **first-class Qwik 2 support**
 as specified in `components/qwik/PANDA-QWIK-HANDOFF.md` ("HANDOFF") — i.e.
-`jsxFramework: 'qwik'` generates artifacts importing `@qwik.dev/core`, a
+`jsxFramework: 'qwikv2'` generates artifacts importing `@qwik.dev/core`, a
 `styled` factory whose event handling is browser-verified over SSR + resume,
 and a `createStyleContext` with the same `withRootProvider` / `withProvider` /
 `withContext` semantics as the react artifact. Part 2.1 turns that premise
@@ -79,7 +79,7 @@ The moving parts, per framework:
    - `src/utils/prompt.ts:47` — prompt options currently
      `[{ value: 'react' }, { value: 'solid' }]`
    - `src/utils/panda-config.ts` — patches user's `panda.config.ts`
-     (must learn to set `jsxFramework: 'qwik'`)
+     (must learn to set `jsxFramework: 'qwikv2'`)
    - `src/utils/install.ts` — dependency install; must map Qwik deps.
 
 5. **`website/`** — Next.js docs site (React). Framework awareness:
@@ -171,7 +171,7 @@ This plan treats the following as **provided by Panda** (they are the
 acceptance criteria of HANDOFF Parts 2–5; listed here so a Park UI
 implementer can check them without reading that doc):
 
-- **PC1.** `panda codegen` with `jsxFramework: 'qwik'` emits artifacts that
+- **PC1.** `panda codegen` with `jsxFramework: 'qwikv2'` emits artifacts that
   import only `@qwik.dev/core` and typecheck in a Qwik 2 project (no
   `@builder.io/*`, no reliance on the type-invisible legacy `h`).
 - **PC2.** `styled.<tag>` / `styled(Component, recipe)` deliver spread
@@ -296,7 +296,7 @@ components/qwik/
 │                           # devDeps: @pandacss/dev (Qwik-2-capable version) + presets,
 │                           # @park-ui/preset (ws), @park-ui/scripts (ws), vite, vitest,
 │                           # vitest-browser-qwik, playwright, typescript
-├── panda.config.ts         # jsxFramework: 'qwik', preset+plugin,
+├── panda.config.ts         # jsxFramework: 'qwikv2', preset+plugin,
 │                           # staticCss.recipes:'*', globalCss colorPalette
 ├── tsconfig.json           # extends ../tsconfig.json; jsxImportSource: @qwik.dev/core
 ├── vite.config.ts          # qwikVite() + tsconfigPaths; drives dev playground + tests
@@ -319,7 +319,7 @@ Repo edits outside the new package:
   `frameworks` list if still live.
 - `packages/cli`: `'qwik'` in `schema/index.ts:73`, `utils/config.ts:14,31`,
   prompt option in `utils/prompt.ts:47`; `utils/panda-config.ts` writes
-  `jsxFramework: 'qwik'`; `utils/install.ts` maps Qwik deps (`@ark-ui/qwik`,
+  `jsxFramework: 'qwikv2'`; `utils/install.ts` maps Qwik deps (`@ark-ui/qwik`,
   icon package) and enforces the minimum Panda version that carries Qwik-2
   support.
 - `website`: add `'qwik'` to `src/lib/frameworks.ts` (both the array and
@@ -386,7 +386,7 @@ the JSON diffs against react's equivalents show only expected framework
 deltas.
 
 **T2. CLI support.** Edits per Part 3. The `init` flow must produce a
-working Qwik City project config: `jsxFramework: 'qwik'`, Panda version
+working Qwik City project config: `jsxFramework: 'qwikv2'`, Panda version
 check, `include` covering `src/**/*.{ts,tsx}`.
 Done-when: in a scratch Qwik City app (Qwik 2 beta template), `park-ui init`
 (local CLI build) + `park-ui add checkbox button` yields a compiling app
@@ -573,6 +573,12 @@ Decision log (append dated entries; S1's contract verdict lands here first):
   to `file:` targets outside the workspace do not install transitive deps);
   zag and ark each need their own installs first so real-path resolution
   works. `checkbox.tsx` landed in the thin 2.2 shape; Appendix B not needed.
+- **2026-07-06 — Panda target renamed to `jsxFramework: 'qwikv2'`.** Upstream
+  Panda keeps `'qwik'` generating Qwik v1 artifacts (v2 is still beta, v1 is
+  not deprecated) and ships the v2 support as a parallel `'qwikv2'` target.
+  `panda.config.ts` here updated accordingly; all suites re-run green
+  (typecheck, headless 6, browser 3, e2e with the upstream wake bug still
+  skipped).
 
 ---
 
