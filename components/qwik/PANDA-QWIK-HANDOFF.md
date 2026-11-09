@@ -1,5 +1,13 @@
 # Panda CSS × Qwik v2 — Requirements Hand-off
 
+> **Historical (superseded 2026-11-09).** This hand-off produced a Panda 1.x
+> fork with a `jsxFramework: 'qwikv2'` target, archived as
+> `gabrielgrant/panda@archive/panda1-qwikv2-target-history`. Panda 2 has since
+> dropped its Qwik target. Qwik 2 support for Panda 2 now lives in the
+> `pandacss-plugin-qwik` plugin (`gabrielgrant/pandacss-plugin-qwik`, used by
+> this package) and is proposed natively on `gabrielgrant/panda@claude/v2-qwik-jsx`.
+> See `PLAN.md` (premise and Part 1) for the current setup.
+
 **Audience:** a fresh agent (no prior conversation context) tasked with
 writing a detailed implementation plan and then implementing **first-class
 Qwik v2 support in Panda CSS** (`chakra-ui/panda`), including

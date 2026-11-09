@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
 // Drives the dev playground (real SSR + resume in Chromium) and verifies the
-// createStyleContext-based checkbox end to end: recipe classes in SSR HTML,
+// createSlotRecipeContext-based checkbox end to end: recipe classes in SSR HTML,
 // click-to-check through the Zag machine after resume, onCheckedChange$
 // delivery, and client-side variant recompute. This is the PC2/PC4 half of
 // the contract smoke test (PLAN.md Part 2.1).
@@ -13,7 +13,7 @@ import { chromium } from 'playwright'
 const pkgDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const port = 5240
 
-const presetChromium = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
+const presetChromium = '/opt/pw-browsers/chromium'
 const launchOptions = existsSync(presetChromium)
   ? { executablePath: presetChromium, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
   : {}
@@ -48,32 +48,20 @@ const scenario = async (name, fn) => {
   }
 }
 
-// The Zag machine currently fails to wake over dev SSR + resume in a way that
-// reproduces WITHOUT any Panda code (see dev/routes/bare and ARK-PLAN Part 5:
-// deserialization throws "Cannot convert undefined or null to object" in
-// getOrCreateStore). Probe the bare checkbox first so an upstream failure is
-// reported as such instead of implicating the styling layer.
-let machineWakes = false
-{
-  const page = await browser.newPage()
-  try {
-    await page.goto(`http://localhost:${port}/bare/`, { waitUntil: 'networkidle' })
-    await page.getByTestId('label').click()
-    await page.waitForFunction(
-      () => document.querySelector('[data-testid="control"]')?.getAttribute('data-state') === 'checked',
-      null,
-      { timeout: 5000 },
-    )
-    machineWakes = true
-  } catch {
-    console.warn(
-      'UPSTREAM  bare @ark-ui/qwik checkbox does not wake over SSR + resume; ' +
-        'skipping machine-interaction scenarios (tracked against ARK-PLAN, not a Panda/Park issue)',
-    )
-  } finally {
-    await page.close()
-  }
-}
+// The bare Ark checkbox (dev/routes/bare, no Panda code) must wake over SSR +
+// resume too, so a failure here points at Ark/Zag rather than the styling
+// layer. It used to fail because Ark kept its noSerialize'd api in a deep
+// store (fixed in @ark-ui/qwik; see ark packages/qwik/PLAN.md R21).
+await scenario('resume: bare Ark checkbox wakes on a label click', async (page) => {
+  await page.goto(`http://localhost:${port}/bare/`, { waitUntil: 'networkidle' })
+  await page.getByTestId('label').click()
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="control"]')?.getAttribute('data-state') === 'checked',
+    null,
+    { timeout: 5000 },
+  )
+})
 
 await scenario('SSR: recipe classes on all slots', async (page) => {
   for (const [testid, slot] of [
@@ -86,28 +74,35 @@ await scenario('SSR: recipe classes on all slots', async (page) => {
   }
 })
 
-if (machineWakes) {
-  await scenario('resume: click label checks the checkbox and fires onCheckedChange$', async (page) => {
+await scenario(
+  'resume: click label checks the checkbox and fires onCheckedChange$',
+  async (page) => {
     await page.getByTestId('label').click()
     await page.waitForFunction(
-      () => document.querySelector('[data-testid="control"]')?.getAttribute('data-state') === 'checked',
+      () =>
+        document.querySelector('[data-testid="control"]')?.getAttribute('data-state') === 'checked',
       null,
       { timeout: 5000 },
     )
-    await page.waitForFunction(() => document.querySelector('[data-testid="changes"]')?.textContent === '1', null, {
-      timeout: 5000,
-    })
-  })
-} else {
-  results.push({ name: 'resume: click label checks the checkbox (SKIPPED, upstream ark/zag wake bug)', ok: true, pageErrors: [] })
-}
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="changes"]')?.textContent === '1',
+      null,
+      {
+        timeout: 5000,
+      },
+    )
+  },
+)
 
 await scenario('resume: variant prop change recomputes classes on all parts', async (page) => {
   const before = (await page.getByTestId('label').getAttribute('class')) ?? ''
   if (!before.includes('checkbox__label--size_md')) throw new Error(`initial label class=${before}`)
   await page.getByTestId('grow').click()
   await page.waitForFunction(
-    () => document.querySelector('[data-testid="label"]')?.className.includes('checkbox__label--size_lg'),
+    () =>
+      document
+        .querySelector('[data-testid="label"]')
+        ?.className.includes('checkbox__label--size_lg'),
     null,
     { timeout: 5000 },
   )

@@ -1,3 +1,4 @@
+import type { JSXOutput } from '@qwik.dev/core'
 import { ssrRenderToDom } from '@qwik.dev/core/testing'
 import { describe, expect, it } from 'vitest'
 import * as Checkbox from '../checkbox'
@@ -8,7 +9,7 @@ import { ComponentUnderTest } from './basic'
  * recipe classes on every slot, variant recompute, unstyled, class merge.
  * Interaction (PC2/PC4) is covered by the browser suite and e2e script.
  */
-const render = async (jsx: unknown) => {
+const render = async (jsx: JSXOutput) => {
   const { document } = await ssrRenderToDom(jsx, { qwikLoader: true })
   return document as Document
 }
@@ -59,12 +60,16 @@ describe('Checkbox (styled)', () => {
   it('reflects the initial data-state on parts', async () => {
     const document = await render(<ComponentUnderTest data-testid="root" />)
 
-    expect(document.querySelector('[data-testid="control"]')?.getAttribute('data-state')).toBe('unchecked')
+    expect(document.querySelector('[data-testid="control"]')?.getAttribute('data-state')).toBe(
+      'unchecked',
+    )
   })
 
   it('reflects a controlled checked prop through SSR', async () => {
     const document = await render(<ComponentUnderTest data-testid="root" checked />)
 
-    expect(document.querySelector('[data-testid="control"]')?.getAttribute('data-state')).toBe('checked')
+    expect(document.querySelector('[data-testid="control"]')?.getAttribute('data-state')).toBe(
+      'checked',
+    )
   })
 })

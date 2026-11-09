@@ -1,10 +1,10 @@
 import { Checkbox, useCheckboxContext } from '@ark-ui/qwik/checkbox'
 import { component$, type PropsOf } from '@qwik.dev/core'
-import { createStyleContext, styled } from 'styled-system/jsx'
+import { createSlotRecipeContext, styled } from 'styled-system/jsx'
 import { checkbox } from 'styled-system/recipes'
 import type { HTMLStyledProps } from 'styled-system/types'
 
-const { withProvider, withContext } = createStyleContext(checkbox)
+const { withProvider, withContext } = createSlotRecipeContext(checkbox)
 
 export type RootProps = PropsOf<typeof Root>
 export type HiddenInputProps = PropsOf<typeof HiddenInput>
@@ -34,7 +34,11 @@ export const Indicator = component$<HTMLStyledProps<'svg'>>((props) => {
         {...props}
       >
         <title>Checkmark</title>
-        {api?.indeterminate ? <path d="M5 12h14" /> : api?.checked ? <path d="M20 6 9 17l-5-5" /> : null}
+        {api?.indeterminate ? (
+          <path d="M5 12h14" />
+        ) : api?.checked ? (
+          <path d="M20 6 9 17l-5-5" />
+        ) : null}
       </styled.svg>
     </Checkbox.Indicator>
   )
