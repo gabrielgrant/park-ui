@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { readFile, readJson, writeFile } from 'fs-extra'
 import type { Registry, RegistryItem } from './schema'
 
-type Framework = 'react' | 'solid'
+type Framework = 'react' | 'solid' | 'qwik'
 
 const replaceFrameworkImports = (content: string, framework: Framework): string => {
   return content.replace(/@ark-ui\/react\/anatomy/g, `@ark-ui/${framework}/anatomy`)

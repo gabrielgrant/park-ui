@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+  cacheDir: process.env.VITE_CACHE_DIR ?? 'node_modules/.vite',
   plugins: [qwikVite(), tsconfigPaths()],
   resolve: {
     // the linked @ark-ui/qwik + @zag-js checkouts each see their own copy of

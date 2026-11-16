@@ -113,9 +113,9 @@ npm deps.
 
 | Layer | Repo / branch | Status |
 | --- | --- | --- |
-| Panda Qwik-2 support | `chakra-ui/panda` fork per HANDOFF | assumed per this plan's premise; verify via Part 2.1 contract |
-| `@zag-js/qwik` 1.31.1 | `gabrielgrant/zag`, branch `qwik-adapter-f` | unpublished fork; NOT on npm |
-| `@ark-ui/qwik` 0.1.0 | `gabrielgrant/ark`, branch `claude/busy-noether-lu8dvd` | Phase-0 spike: **Checkbox only**; no dist build (exports point at TS source); asChild/Portal/RootProvider absent |
+| Panda Qwik-2 support | `gabrielgrant/panda`, branch `claude/panda-qwik-v2-support-3nl3s5` | contract verified (S1); **target is `jsxFramework: 'qwikv2'`** (`'qwik'` = Qwik 1) |
+| `@zag-js/qwik` 1.42.0 | `gabrielgrant/zag`, branch `claude/confident-sagan-d2abxy` | unpublished fork; NOT on npm; Qwik 2.0.0-rc.4 |
+| `@ark-ui/qwik` 0.1.0 | `gabrielgrant/ark`, branch `claude/busy-noether-lu8dvd` | **component surface complete (60 dirs)**; no dist build (exports point at TS source); asChild/RootProvider/Context absent; Portal is a near-no-op |
 | `@park-ui/qwik` | this repo | this plan |
 
 Gates this imposes:
@@ -123,10 +123,11 @@ Gates this imposes:
 - **G0 — the Panda contract (Part 2.1).** Nothing in Phases 1–3 starts until
   the smoke test passes against the Panda build in use (fork or release).
 - **G1 — component coverage.** Park UI can only wrap Ark parts that exist.
-  Today that is Checkbox. However, **24 of the 63 Park UI components use no
+  **Cleared 2026-11-16: every Ark component Park UI wraps now exists.**
+  (Historically: **24 of the 63 Park UI components use no
   Ark machine at all** (they need only `@ark-ui/qwik/factory`, which exists) —
   see the Wave 0 list in Part 4 Phase 3. Work is NOT serialized behind Ark's
-  long tail.
+  long tail.)
 - **G2 — release.** The `@park-ui/qwik` registry cannot go live on
   park-ui.com until `@zag-js/qwik` and `@ark-ui/qwik` are published to npm,
   Ark's library build (ARK-PLAN Step I2) is wired, **and** the Panda Qwik-2
@@ -142,14 +143,16 @@ Gates this imposes:
 **Bootstrap for development (until packages publish):**
 
 ```bash
-# sibling layout required:
-#   <parent>/park-ui   (this repo)
-#   <parent>/ark       (gabrielgrant/ark @ claude/busy-noether-lu8dvd)
-#   <parent>/zag       (gabrielgrant/zag @ qwik-adapter-f)
-#   <parent>/panda     (the HANDOFF fork, until upstream releases)
-git clone https://github.com/gabrielgrant/ark ../ark && git -C ../ark checkout claude/busy-noether-lu8dvd
-git clone https://github.com/gabrielgrant/zag ../zag && git -C ../zag checkout qwik-adapter-f
-# in ark: link zag + install per ARK-PLAN Part 1 (bun run local:sync; bun install --ignore-scripts)
+# sibling layout required (names matter — local-sync looks for them):
+#   <parent>/park-ui    (this repo)
+#   <parent>/ark-qwik   (gabrielgrant/ark @ claude/busy-noether-lu8dvd; a worktree is fine; NO install needed)
+#   <parent>/zag        (gabrielgrant/zag @ claude/confident-sagan-d2abxy; `pnpm install --ignore-scripts`)
+#   <parent>/panda      (gabrielgrant/panda @ claude/panda-qwik-v2-support-3nl3s5; `pnpm install && pnpm build`)
+git clone -b claude/busy-noether-lu8dvd https://github.com/gabrielgrant/ark ../ark-qwik
+git clone -b claude/confident-sagan-d2abxy https://github.com/gabrielgrant/zag ../zag && (cd ../zag && pnpm install --ignore-scripts)
+git clone -b claude/panda-qwik-v2-support-3nl3s5 https://github.com/gabrielgrant/panda ../panda && (cd ../panda && pnpm install --ignore-scripts && pnpm build)
+bun install --ignore-scripts && bun run local:sync   # re-run local:sync after every bun install
+bun run qwik prepare:local                           # panda codegen via the fork CLI
 ```
 
 Linking is done by `bun run local:sync` (`packages/scripts/src/local-sync.ts`)
@@ -526,7 +529,7 @@ Checklist per file (follow literally):
 3. **Qwik City vs bare Vite for the dev playground** — City exercises
    SSR-streaming closer to real apps; recommendation: City. Needed: T4.
 4. **`@qwik.dev/core` pinning** — pin exactly (same version as Ark:
-   `2.0.0-beta.36` at time of writing) and bump in lockstep with Ark
+   `2.0.0-rc.4` at time of writing) and bump in lockstep with Ark
    (ARK-PLAN P5 risk: Zag adapter uses internals).
 5. **Vue precedent** — `components/vue` is a stub not yet in
    `frameworks.ts`; if Vue enablement PRs land first, crib their
@@ -606,6 +609,37 @@ Decision log (append dated entries; S1's contract verdict lands here first):
   loading hides children via a `hidden` `display:contents` span instead of
   React's branch logic. User `onClick$` through the full chain
   (component$ prop → styled inline wrapper → host element) browser-verified.
+- **2026-11-16 — stack bump; SSR+resume UNBLOCKED.** Ark moved to Qwik
+  2.0.0-rc.4 / Vite 8.3.5 / vitest-browser-qwik 0.3.11 on zag branch
+  `claude/confident-sagan-d2abxy`; park-ui's qwik package now pins the same.
+  The 2026-07-11 upstream bug is FIXED in ark (rule R21: the api store must
+  be shallow — `useStore(..., { deep: false })` — or Qwik wraps the
+  noSerialize'd api in a nested store whose target serializes as undefined).
+  The styled checkbox now toggles after SSR + resume in the browser.
+  Panda moved Qwik 2 to its own target: `jsxFramework: 'qwikv2'`.
+- **2026-11-16 — resume guard is headless now.** `tests/ssr-resume.test.tsx`
+  SSR-renders every `tests/<name>.fixtures.tsx` `ComponentUnderTest` and
+  deserializes each state root through `DomContainer.$getObjectById$` (the
+  browser's resume path) — mirrors ark's R21 guard and covers every ported
+  component automatically. The browser `renderSSR`-then-click tests stay
+  `it.skip`: they pass but the harness's wake *replay* leaves an unhandled
+  `Q24: Unable to find q:container` (or hangs when it's the only test) —
+  ark PLAN Part 5 #1, an adapter-replay/harness issue, not a component bug.
+  Also: never put two `renderSSR` calls in one file.
+- **2026-11-16 — icons.** `src/components/ui/icons.tsx` holds the 15 lucide
+  icons Park UI uses, generated from lucide-solid's icon data (ISC), all
+  `aria-hidden`. Registry treats it as an ordinary ui item that components
+  depend on via `./icons`; Qwik installs need no icon package (the website's
+  install snippet drops `lucide-*` for qwik).
+- **2026-11-16 — Phase 1 tooling.** registry scripts detect `@park-ui/qwik`;
+  CLI schema/config accept `qwik` (interactive prompt option deliberately
+  withheld until release, G2); website `frameworks.ts` includes `qwik`;
+  installation.mdx documents `jsxFramework: 'qwikv2'`. The 58 component-page
+  `metaDescription`s ("…for React and Solid.js") are left for the release
+  flip.
+- **2026-11-16 — parallel porting.** Test configs take `VITE_CACHE_DIR` and
+  `VITEST_BROWSER_PORT` env overrides so several suites can run side by side
+  in one checkout.
 
 ---
 

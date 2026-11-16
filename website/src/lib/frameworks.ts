@@ -1,5 +1,5 @@
 export type Framework = (typeof frameworks)[number]
-export const frameworks = ['react', 'solid'] as const
+export const frameworks = ['react', 'solid', 'qwik'] as const
 
 export type Lang = 'tsx' | 'bash' | 'ts'
 
@@ -25,6 +25,10 @@ export const frameworkConfigs: FrameworkConfig[] = [
   },
   {
     framework: 'solid',
+    lang: 'tsx',
+  },
+  {
+    framework: 'qwik',
     lang: 'tsx',
   },
 ] as const

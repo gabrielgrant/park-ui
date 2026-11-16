@@ -20,7 +20,7 @@
  * and the npm @pandacss/dev stays in place for types + other frameworks.
  *
  * Expected sibling layout (relative to the park-ui repo root):
- *   ../zag       gabrielgrant/zag  @ qwik-adapter-f        (`pnpm install --ignore-scripts` run)
+ *   ../zag       gabrielgrant/zag  @ claude/confident-sagan-d2abxy        (`pnpm install --ignore-scripts` run)
  *   ../ark-qwik  gabrielgrant/ark  @ claude/busy-noether-lu8dvd (worktree ok)
  *   ../panda     gabrielgrant/panda @ claude/panda-qwik-v2-support-3nl3s5,
  *                built (`pnpm install && pnpm build`)
@@ -67,7 +67,7 @@ const collectZagPackages = () => {
 
 const checkLayout = () => {
   for (const [dir, hint] of [
-    [zagDir, 'clone gabrielgrant/zag@qwik-adapter-f as ../zag'],
+    [zagDir, 'clone gabrielgrant/zag@claude/confident-sagan-d2abxy as ../zag'],
     [join(zagDir, 'node_modules'), 'run `pnpm install --ignore-scripts` in ../zag'],
     [arkQwikPackage, 'add an ark worktree of claude/busy-noether-lu8dvd as ../ark-qwik'],
     [pandaDir, 'clone + build gabrielgrant/panda@claude/panda-qwik-v2-support-3nl3s5 as ../panda'],

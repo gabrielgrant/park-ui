@@ -29,6 +29,8 @@ const launchOptions = presetChromium
   : {}
 
 export default defineConfig({
+  // per-run overrides let several suites run side by side in one checkout
+  cacheDir: process.env.VITE_CACHE_DIR ?? 'node_modules/.vite',
   plugins: [testSSR(), qwikVite(), tsconfigPaths()],
   resolve: {
     dedupe: ['@qwik.dev/core'],
@@ -51,6 +53,7 @@ export default defineConfig({
       enabled: true,
       headless: true,
       provider: playwright({ launchOptions }),
+      api: { port: Number(process.env.VITEST_BROWSER_PORT) || 63315 },
       instances: [{ browser: 'chromium' }],
     },
   },

@@ -20,8 +20,9 @@ const LUCIDE_PACKAGES: Record<string, string> = {
   react: 'lucide-react',
 }
 
+// Qwik has no lucide build: Park UI's Qwik components ship their icons inline
 const transformCodeForFramework = (code: string, framework: string) =>
-  code
+  (framework === 'qwik' ? code.replaceAll(/\s*lucide-react/g, '') : code)
     .replaceAll('lucide-react', LUCIDE_PACKAGES[framework] ?? LUCIDE_PACKAGES.react)
     .replaceAll('react', framework)
 

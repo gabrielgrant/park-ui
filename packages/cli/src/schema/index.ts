@@ -70,5 +70,5 @@ export type RegistryItem = z.infer<typeof registryItem>
 
 export const registryIndexList = z.object({ name: z.string(), type: registryItemType }).array()
 
-const Framework = z.enum(['react', 'vue', 'solid', 'svelte'])
+const Framework = z.enum(['react', 'vue', 'solid', 'svelte', 'qwik'])
 export type Framework = z.infer<typeof Framework>

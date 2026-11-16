@@ -11,7 +11,7 @@ import { PandaConfig } from './panda-config'
 import { TSConfig } from './tsconfig'
 
 const BaseConfigSchema = Schema.Struct({
-  framework: Schema.Literal('react', 'solid', 'svelte', 'vue'),
+  framework: Schema.Literal('react', 'solid', 'svelte', 'vue', 'qwik'),
   panda: Schema.Struct({
     config: Schema.String,
   }),
@@ -28,7 +28,7 @@ const BaseConfigSchema = Schema.Struct({
 export const ConigSchema = BaseConfigSchema.pipe(
   Schema.transformOrFail(
     Schema.Struct({
-      framework: Schema.Literal('react', 'solid', 'svelte', 'vue'),
+      framework: Schema.Literal('react', 'solid', 'svelte', 'vue', 'qwik'),
       panda: Schema.Struct({
         config: Schema.String,
       }),

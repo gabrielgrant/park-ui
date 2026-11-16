@@ -3,7 +3,7 @@ import fg from 'fast-glob'
 import { readFile, writeFile } from 'fs-extra'
 import type { Registry, RegistryItemPartial } from './schema'
 
-type Framework = 'react' | 'solid'
+type Framework = 'react' | 'solid' | 'qwik'
 
 const toKebabCase = (str: string) => str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
 
@@ -193,7 +193,7 @@ export const generateRegistry = async (options: { name: string; pattern?: string
   console.log(`🔍 Scanning files matching: ${pattern}`)
 
   // Extract framework from registry name (e.g., '@park-ui/solid' -> 'solid')
-  const framework: Framework = options.name.includes('solid') ? 'solid' : 'react'
+  const framework: Framework = (['solid', 'qwik'] as const).find((f) => options.name.includes(f)) ?? 'react'
 
   const files = await fg(pattern, {
     ignore: ['**/*.test.tsx', '**/*.spec.tsx', '**/index.ts'],
