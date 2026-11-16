@@ -9,9 +9,15 @@ describe('Pagination (styled, SSR)', () => {
   it('applies recipe slot classes to the parts', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
 
-    expect(getClasses(document, '[data-scope="pagination"][data-part="root"]')).toContain('pagination__root')
-    expect(getClasses(document, '[data-testid="prev-trigger"]')).toContain('pagination__prevTrigger')
-    expect(getClasses(document, '[data-testid="next-trigger"]')).toContain('pagination__nextTrigger')
+    expect(getClasses(document, '[data-scope="pagination"][data-part="root"]')).toContain(
+      'pagination__root',
+    )
+    expect(getClasses(document, '[data-testid="prev-trigger"]')).toContain(
+      'pagination__prevTrigger',
+    )
+    expect(getClasses(document, '[data-testid="next-trigger"]')).toContain(
+      'pagination__nextTrigger',
+    )
     expect(getClasses(document, '[data-part="ellipsis"]')).toContain('pagination__ellipsis')
   })
 

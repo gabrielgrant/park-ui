@@ -18,16 +18,19 @@ describe('FileUpload (styled, SSR)', () => {
       ['item-group', 'itemGroup'],
     ]
     for (const [part, slot] of slots) {
-      expect(getClasses(document, `[data-scope="file-upload"][data-part="${part}"]`), part).toContain(
-        `file-upload__${slot}`,
-      )
+      expect(
+        getClasses(document, `[data-scope="file-upload"][data-part="${part}"]`),
+        part,
+      ).toContain(`file-upload__${slot}`)
     }
   })
 
   it('applies the default size variant', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
 
-    expect(getClasses(document, '[data-scope="file-upload"][data-part="root"]')).toContain('file-upload__root--size_md')
+    expect(getClasses(document, '[data-scope="file-upload"][data-part="root"]')).toContain(
+      'file-upload__root--size_md',
+    )
   })
 
   it('renders the file text fallback as a placeholder', async () => {

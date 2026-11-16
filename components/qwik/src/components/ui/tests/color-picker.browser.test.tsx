@@ -8,7 +8,9 @@ it('opens via the trigger and picking a swatch changes the value', async () => {
   const root = screen.container as HTMLElement
 
   await screen.getByTestId('trigger').click()
-  await expect.poll(() => root.querySelector('[data-testid="content"]')?.hasAttribute('hidden')).toBe(false)
+  await expect
+    .poll(() => root.querySelector('[data-testid="content"]')?.hasAttribute('hidden'))
+    .toBe(false)
 
   ;(root.querySelector('[data-testid="swatch-blue"]') as HTMLElement).click()
 

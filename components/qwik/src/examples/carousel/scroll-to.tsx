@@ -38,7 +38,12 @@ const ScrollToTrigger = component$(() => {
   const carousel = useCarouselContext()
 
   return (
-    <Button variant="outline" size="sm" alignSelf="start" onClick$={() => carousel?.scrollToIndex(3)}>
+    <Button
+      variant="outline"
+      size="sm"
+      alignSelf="start"
+      onClick$={() => carousel?.scrollToIndex(3)}
+    >
       Go to slide 4
     </Button>
   )

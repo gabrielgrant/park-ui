@@ -34,26 +34,35 @@ describe('DatePicker (styled, SSR)', () => {
       ['table-cell-trigger', 'tableCellTrigger'],
     ]
     for (const [part, slot] of slots) {
-      expect(getClasses(document, `[data-scope="date-picker"][data-part="${part}"]`), part).toContain(
-        `date-picker__${slot}`,
-      )
+      expect(
+        getClasses(document, `[data-scope="date-picker"][data-part="${part}"]`),
+        part,
+      ).toContain(`date-picker__${slot}`)
     }
   })
 
   it('renders the day grid from the context', async () => {
-    const { document } = await ssrRenderToDom(<ComponentUnderTest defaultFocusedValue={parseDate('2024-06-15')} />, {
-      qwikLoader: true,
-    })
+    const { document } = await ssrRenderToDom(
+      <ComponentUnderTest defaultFocusedValue={parseDate('2024-06-15')} />,
+      {
+        qwikLoader: true,
+      },
+    )
 
     expect(document.querySelectorAll('[data-part="table-header"]').length).toBe(7)
     expect(document.querySelector('[data-testid="day-2024-06-15"]')).toBeTruthy()
   })
 
   it('reflects a default value in the input', async () => {
-    const { document } = await ssrRenderToDom(<ComponentUnderTest defaultValue={[parseDate('2024-06-15')]} />, {
-      qwikLoader: true,
-    })
+    const { document } = await ssrRenderToDom(
+      <ComponentUnderTest defaultValue={[parseDate('2024-06-15')]} />,
+      {
+        qwikLoader: true,
+      },
+    )
 
-    expect((document.querySelector('[data-testid="input"]') as HTMLInputElement | null)?.value).toBe('06/15/2024')
+    expect(
+      (document.querySelector('[data-testid="input"]') as HTMLInputElement | null)?.value,
+    ).toBe('06/15/2024')
   })
 })

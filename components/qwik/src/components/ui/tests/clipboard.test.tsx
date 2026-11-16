@@ -9,7 +9,9 @@ describe('Clipboard (styled, SSR)', () => {
   it('applies recipe slot classes to every part', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
 
-    expect(getClasses(document, '[data-scope="clipboard"][data-part="root"]')).toContain('clipboard__root')
+    expect(getClasses(document, '[data-scope="clipboard"][data-part="root"]')).toContain(
+      'clipboard__root',
+    )
     expect(getClasses(document, '[data-testid="label"]')).toContain('clipboard__label')
     expect(getClasses(document, '[data-testid="control"]')).toContain('clipboard__control')
     expect(getClasses(document, '[data-testid="input"]')).toContain('clipboard__input')
@@ -23,6 +25,8 @@ describe('Clipboard (styled, SSR)', () => {
 
     expect(document.querySelector('[data-testid="indicator"] svg')).toBeTruthy()
     expect(document.querySelector('[data-testid="copy-text"]')?.textContent).toBe('Copy')
-    expect(document.querySelector('[data-testid="input"]')?.getAttribute('value')).toBe('https://park-ui.com')
+    expect(document.querySelector('[data-testid="input"]')?.getAttribute('value')).toBe(
+      'https://park-ui.com',
+    )
   })
 })

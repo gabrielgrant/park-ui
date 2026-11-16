@@ -18,7 +18,9 @@ it('shows a styled toast from a trigger click and dismisses it via the close tri
   expect(root.getAttribute('class')).toContain('toast__root')
   expect(root.querySelector('[data-part="title"]')?.getAttribute('class')).toContain('toast__title')
   expect(root.querySelector('[data-part="title"]')?.textContent).toBe('Saved')
-  expect(root.querySelector('[data-part="description"]')?.textContent).toBe('Your changes have been saved.')
+  expect(root.querySelector('[data-part="description"]')?.textContent).toBe(
+    'Your changes have been saved.',
+  )
   expect(root.querySelector('svg[data-type="success"]')).toBeTruthy()
 
   const close = root.querySelector('[data-part="close-trigger"]') as HTMLElement

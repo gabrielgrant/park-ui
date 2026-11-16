@@ -32,7 +32,11 @@ const StyledFallback = withContext(Avatar.Fallback, 'fallback')
 export const Fallback = (props: FallbackProps) => {
   const { name, children, ...rest } = props
 
-  return <StyledFallback {...rest}>{children ?? (name ? getInitials(name) : <UserIcon />)}</StyledFallback>
+  return (
+    <StyledFallback {...rest}>
+      {children ?? (name ? getInitials(name) : <UserIcon />)}
+    </StyledFallback>
+  )
 }
 
 const getInitials = (name: string) => {

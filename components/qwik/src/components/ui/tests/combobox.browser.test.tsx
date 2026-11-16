@@ -16,7 +16,9 @@ it('filters while typing and picks an item', async () => {
   await page.getByTestId('item-solid').click()
 
   await expect.element(page.getByTestId('input')).toHaveValue('Solid')
-  await expect.poll(() => root.querySelector('[data-testid="content"]')?.getAttribute('data-state')).toBe('closed')
+  await expect
+    .poll(() => root.querySelector('[data-testid="content"]')?.getAttribute('data-state'))
+    .toBe('closed')
 })
 
 it('shows the empty state when nothing matches', async () => {

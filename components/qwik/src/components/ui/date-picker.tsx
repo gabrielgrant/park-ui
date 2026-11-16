@@ -33,11 +33,17 @@ export const ViewTrigger = withContext(DatePicker.ViewTrigger, 'viewTrigger')
 const StyledMonthSelect = styled(DatePicker.MonthSelect)
 export type MonthSelectProps = ComponentProps<typeof StyledMonthSelect>
 export const MonthSelect = (props: MonthSelectProps) => (
-  <StyledMonthSelect {...props} class={cx(datePicker().monthSelect, props.class as string | undefined)} />
+  <StyledMonthSelect
+    {...props}
+    class={cx(datePicker().monthSelect, props.class as string | undefined)}
+  />
 )
 
 const StyledYearSelect = styled(DatePicker.YearSelect)
 export type YearSelectProps = ComponentProps<typeof StyledYearSelect>
 export const YearSelect = (props: YearSelectProps) => (
-  <StyledYearSelect {...props} class={cx(datePicker().yearSelect, props.class as string | undefined)} />
+  <StyledYearSelect
+    {...props}
+    class={cx(datePicker().yearSelect, props.class as string | undefined)}
+  />
 )

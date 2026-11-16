@@ -10,7 +10,9 @@ describe('Avatar (styled, SSR)', () => {
   it('applies recipe slot classes to every part', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
 
-    expect(getClasses(document, '[data-scope="avatar"][data-part="root"]')).toContain('avatar__root')
+    expect(getClasses(document, '[data-scope="avatar"][data-part="root"]')).toContain(
+      'avatar__root',
+    )
     expect(getClasses(document, '[data-testid="image"]')).toContain('avatar__image')
     expect(getClasses(document, '[data-testid="fallback"]')).toContain('avatar__fallback')
   })
@@ -20,9 +22,12 @@ describe('Avatar (styled, SSR)', () => {
     const root = '[data-scope="avatar"][data-part="root"]'
     expect(getClasses(defaults.document, root)).toContain('avatar__root--size_md')
 
-    const custom = await ssrRenderToDom(<ComponentUnderTest size="lg" variant="outline" shape="square" />, {
-      qwikLoader: true,
-    })
+    const custom = await ssrRenderToDom(
+      <ComponentUnderTest size="lg" variant="outline" shape="square" />,
+      {
+        qwikLoader: true,
+      },
+    )
     expect(getClasses(custom.document, root)).toContain('avatar__root--size_lg')
     expect(getClasses(custom.document, root)).toContain('avatar__root--variant_outline')
     expect(getClasses(custom.document, root)).toContain('avatar__root--shape_square')

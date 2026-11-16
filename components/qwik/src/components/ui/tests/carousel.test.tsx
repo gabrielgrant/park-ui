@@ -20,17 +20,23 @@ describe('Carousel (styled, SSR)', () => {
       ['indicator', 'indicator'],
     ]
     for (const [part, slot] of slots) {
-      expect(getClasses(document, `[data-scope="carousel"][data-part="${part}"]`), part).toContain(`carousel__${slot}`)
+      expect(getClasses(document, `[data-scope="carousel"][data-part="${part}"]`), part).toContain(
+        `carousel__${slot}`,
+      )
     }
   })
 
   it('applies default and inline variant classes', async () => {
     const plain = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
     expect(getClasses(plain.document, '[data-part="root"]')).toContain('carousel__root--size_md')
-    expect(getClasses(plain.document, '[data-part="control"]')).not.toContain('carousel__control--inline_true')
+    expect(getClasses(plain.document, '[data-part="control"]')).not.toContain(
+      'carousel__control--inline_true',
+    )
 
     const inline = await ssrRenderToDom(<ComponentUnderTest inline />, { qwikLoader: true })
-    expect(getClasses(inline.document, '[data-part="control"]')).toContain('carousel__control--inline_true')
+    expect(getClasses(inline.document, '[data-part="control"]')).toContain(
+      'carousel__control--inline_true',
+    )
   })
 
   it('renders one indicator per page and marks the first current', async () => {

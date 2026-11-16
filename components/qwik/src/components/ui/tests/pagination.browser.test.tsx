@@ -8,7 +8,9 @@ it('moves the selected page with next and page clicks', async () => {
   const root = screen.container as HTMLElement
   const current = () => root.querySelector('[data-part="item"][aria-current="page"]')
   const item = (text: string) =>
-    [...root.querySelectorAll<HTMLElement>('[data-part="item"]')].find((node) => node.textContent === text)
+    [...root.querySelectorAll<HTMLElement>('[data-part="item"]')].find(
+      (node) => node.textContent === text,
+    )
 
   await expect.poll(() => current()?.textContent).toBe('1')
 

@@ -32,7 +32,9 @@ export const ComponentUnderTest = (props: Omit<Select.RootProps<Framework>, 'col
           <Select.ItemGroupLabel data-testid="item-group-label">Frameworks</Select.ItemGroupLabel>
           {collection.items.map((item) => (
             <Select.Item key={item.value} item={item} data-testid={`item-${item.value}`}>
-              <Select.ItemText data-testid={`item-text-${item.value}`}>{item.label}</Select.ItemText>
+              <Select.ItemText data-testid={`item-text-${item.value}`}>
+                {item.label}
+              </Select.ItemText>
               <Select.ItemIndicator data-testid={`indicator-${item.value}`} />
             </Select.Item>
           ))}

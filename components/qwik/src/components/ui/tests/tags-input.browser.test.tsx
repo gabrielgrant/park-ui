@@ -20,5 +20,7 @@ it('adds a tag on enter and removes one via its delete trigger', async () => {
   await userEvent.click(deleteSolid)
 
   await expect.poll(() => tagTexts(root)).toEqual(['React', 'Vue', 'Qwik'])
-  expect(root.querySelector('[data-testid="item"]')?.getAttribute('class')).toContain('tags-input__item')
+  expect(root.querySelector('[data-testid="item"]')?.getAttribute('class')).toContain(
+    'tags-input__item',
+  )
 })

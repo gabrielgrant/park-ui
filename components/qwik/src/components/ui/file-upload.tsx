@@ -79,7 +79,8 @@ export const FileText = component$<FileTextProps>((props) => {
   const fileUpload = useFileUploadContext()
   const files = fileUpload?.acceptedFiles ?? []
 
-  const fileText = files.length === 1 ? files[0].name : files.length > 1 ? `${files.length} files` : fallback
+  const fileText =
+    files.length === 1 ? files[0].name : files.length > 1 ? `${files.length} files` : fallback
 
   const placeholderProps = { 'data-placeholder': fileText === fallback ? '' : undefined }
 

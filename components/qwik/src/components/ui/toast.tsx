@@ -41,7 +41,11 @@ export const toaster = createToaster({
 
 const renderToast = (toast: ToastOptions) => (
   <Root>
-    {toast.type === 'loading' ? <Spinner color="colorPalette.plain.fg" /> : <Indicator type={toast.type} />}
+    {toast.type === 'loading' ? (
+      <Spinner color="colorPalette.plain.fg" />
+    ) : (
+      <Indicator type={toast.type} />
+    )}
 
     <Stack gap="3" alignItems="start">
       <Stack gap="1">

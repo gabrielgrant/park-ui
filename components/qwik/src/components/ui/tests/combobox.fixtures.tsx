@@ -16,7 +16,9 @@ const frameworks: Framework[] = [
 
 const collection = createListCollection<Framework>({ items: frameworks })
 
-export const ComponentUnderTest = (props: Omit<ComboboxRootProps<Framework>, 'collection'> & Combobox.RootProps) => (
+export const ComponentUnderTest = (
+  props: Omit<ComboboxRootProps<Framework>, 'collection'> & Combobox.RootProps,
+) => (
   <Combobox.Root collection={collection} {...props}>
     <Combobox.Label data-testid="label">Framework</Combobox.Label>
     <Combobox.Control data-testid="control">
@@ -30,10 +32,14 @@ export const ComponentUnderTest = (props: Omit<ComboboxRootProps<Framework>, 'co
       <Combobox.Content data-testid="content">
         <Combobox.Empty data-testid="empty">No items found</Combobox.Empty>
         <Combobox.ItemGroup data-testid="item-group">
-          <Combobox.ItemGroupLabel data-testid="item-group-label">Frameworks</Combobox.ItemGroupLabel>
+          <Combobox.ItemGroupLabel data-testid="item-group-label">
+            Frameworks
+          </Combobox.ItemGroupLabel>
           {collection.items.map((item) => (
             <Combobox.Item key={item.value} item={item} data-testid={`item-${item.value}`}>
-              <Combobox.ItemText data-testid={`item-text-${item.value}`}>{item.label}</Combobox.ItemText>
+              <Combobox.ItemText data-testid={`item-text-${item.value}`}>
+                {item.label}
+              </Combobox.ItemText>
               <Combobox.ItemIndicator data-testid={`indicator-${item.value}`} />
             </Combobox.Item>
           ))}

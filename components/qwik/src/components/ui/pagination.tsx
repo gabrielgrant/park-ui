@@ -45,7 +45,9 @@ export const Items = component$<PaginationItemsProps>((props) => {
           type: 'page',
           value: page.value,
           ...rest,
-          ...(api.page === page.value ? { variant: 'solid' } : { variant: 'outline', colorPalette: 'gray' }),
+          ...(api.page === page.value
+            ? { variant: 'solid' }
+            : { variant: 'outline', colorPalette: 'gray' }),
         } as IconButtonProps
 
         return (

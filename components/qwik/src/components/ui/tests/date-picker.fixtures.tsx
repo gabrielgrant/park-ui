@@ -19,7 +19,9 @@ const DayTable = component$(() => {
           <DatePicker.TableRow key={index}>
             {week.map((day) => (
               <DatePicker.TableCell key={day.toString()} value={day}>
-                <DatePicker.TableCellTrigger data-testid={`day-${day.toString()}`}>{day.day}</DatePicker.TableCellTrigger>
+                <DatePicker.TableCellTrigger data-testid={`day-${day.toString()}`}>
+                  {day.day}
+                </DatePicker.TableCellTrigger>
               </DatePicker.TableCell>
             ))}
           </DatePicker.TableRow>

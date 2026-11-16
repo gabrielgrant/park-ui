@@ -8,7 +8,9 @@ it('opens via the trigger and picking a day fills the input', async () => {
   const root = screen.container as HTMLElement
 
   await screen.getByTestId('trigger').click()
-  await expect.poll(() => root.querySelector('[data-testid="content"]')?.hasAttribute('hidden')).toBe(false)
+  await expect
+    .poll(() => root.querySelector('[data-testid="content"]')?.hasAttribute('hidden'))
+    .toBe(false)
 
   // native click (ark PLAN.md Part 5 #0b): locator clicks on cell triggers can be swallowed
   const day = root.querySelector('[data-testid="day-2024-06-15"]') as HTMLElement

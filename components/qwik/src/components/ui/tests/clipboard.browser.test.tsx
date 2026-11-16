@@ -9,7 +9,8 @@ it('enters the copied state and swaps the indicators on trigger click', async ()
   const trigger = page.getByTestId('trigger')
 
   await expect.element(trigger).not.toHaveAttribute('data-copied')
-  const copyText = () => (root.querySelector('[data-testid="copy-text"]') as HTMLElement | null)?.innerText
+  const copyText = () =>
+    (root.querySelector('[data-testid="copy-text"]') as HTMLElement | null)?.innerText
   expect(copyText()).toBe('Copy')
 
   await trigger.click()

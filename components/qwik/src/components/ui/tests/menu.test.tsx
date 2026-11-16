@@ -15,7 +15,9 @@ describe('Menu (styled, SSR)', () => {
     expect(getClasses(document, '[data-testid="positioner"]')).toContain('menu__positioner')
     expect(getClasses(document, '[data-testid="content"]')).toContain('menu__content')
     expect(getClasses(document, '[data-testid="item-group"]')).toContain('menu__itemGroup')
-    expect(getClasses(document, '[data-testid="item-group-label"]')).toContain('menu__itemGroupLabel')
+    expect(getClasses(document, '[data-testid="item-group-label"]')).toContain(
+      'menu__itemGroupLabel',
+    )
     expect(getClasses(document, '[data-testid="item-open"]')).toContain('menu__item')
     expect(getClasses(document, '[data-testid="separator"]')).toContain('menu__separator')
   })
@@ -32,7 +34,9 @@ describe('Menu (styled, SSR)', () => {
   it('lazily mounts the content by default', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
 
-    expect(document.querySelector('[data-testid="trigger"]')?.getAttribute('aria-expanded')).toBe('false')
+    expect(document.querySelector('[data-testid="trigger"]')?.getAttribute('aria-expanded')).toBe(
+      'false',
+    )
     expect(document.querySelector('[data-testid="content"]')).toBeFalsy()
   })
 
