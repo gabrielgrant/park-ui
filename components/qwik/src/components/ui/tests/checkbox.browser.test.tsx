@@ -2,12 +2,12 @@ import { component$, useSignal } from '@qwik.dev/core'
 import { expect, it } from 'vitest'
 import { render, renderSSR } from 'vitest-browser-qwik'
 import * as Checkbox from '../checkbox'
-import { ComponentUnderTest } from './basic'
+import { ComponentUnderTest } from './checkbox.fixtures'
 
 // PC2 in its strongest form: server-rendered HTML, resumed in the browser,
-// then interacted with. SKIPPED: blocked by an upstream ark/zag wake-path bug
-// (see ssr-resume.browser.test.tsx) whose crashed Qwik container also wedges
-// the vitest runner — un-skip when the upstream fix lands.
+// then interacted with. SKIPPED for the same harness wake-replay issue as
+// ark-resume.browser.test.tsx (ark PLAN.md Part 5 #1); it passes but leaves
+// an unhandled Q24 that fails the run. Resume is guarded by ssr-resume.test.tsx.
 it.skip('toggles after SSR + resume', async () => {
   const screen = await renderSSR(<ComponentUnderTest />)
   const checkbox = screen.getByRole('checkbox')

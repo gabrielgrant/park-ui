@@ -1,4 +1,5 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { qwikVite } from '@qwik.dev/core/optimizer'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vite'
@@ -12,8 +13,18 @@ import { testSSR } from 'vitest-browser-qwik/ssr-plugin'
 // Use a pre-installed Chromium when present (e.g. sandboxes where Playwright's
 // browser download is blocked); otherwise fall back to Playwright's managed
 // browser so the config stays portable.
-const presetChromium = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
-const launchOptions = existsSync(presetChromium)
+const findPresetChromium = (root = '/opt/pw-browsers') => {
+  if (!existsSync(root)) return undefined
+  for (const dir of readdirSync(root).filter((d) => /^chromium-\d+$/.test(d))) {
+    for (const sub of ['chrome-linux64/chrome', 'chrome-linux/chrome']) {
+      const candidate = join(root, dir, sub)
+      if (existsSync(candidate)) return candidate
+    }
+  }
+  return undefined
+}
+const presetChromium = findPresetChromium()
+const launchOptions = presetChromium
   ? { executablePath: presetChromium, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
   : {}
 

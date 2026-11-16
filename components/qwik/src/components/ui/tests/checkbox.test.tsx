@@ -1,6 +1,6 @@
 import { ssrRenderToDom } from '@qwik.dev/core/testing'
 import { describe, expect, it } from 'vitest'
-import { ComponentUnderTest } from './basic'
+import { ComponentUnderTest } from './checkbox.fixtures'
 
 const getClasses = (document: Document, selector: string) =>
   (document.querySelector(selector)?.getAttribute('class') ?? '').split(/\s+/)

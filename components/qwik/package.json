@@ -19,22 +19,23 @@
     ".": "./src/components/ui/index.ts"
   },
   "devDependencies": {
+    "@internationalized/date": "3.12.4",
     "@pandacss/dev": "1.8.1",
     "@pandacss/preset-base": "1.8.1",
     "@pandacss/preset-panda": "1.8.1",
     "@park-ui/preset": "workspace:*",
     "@park-ui/scripts": "workspace:*",
-    "@qwik.dev/core": "2.0.0-beta.36",
+    "@qwik.dev/core": "2.0.0-rc.4",
     "@vitest/browser": "4.1.8",
     "@vitest/browser-playwright": "4.1.8",
     "playwright": "1.58.0",
     "typescript": "5.9.3",
-    "vite": "8.0.16",
+    "vite": "8.3.5",
     "vite-tsconfig-paths": "6.0.5",
     "vitest": "4.1.8",
-    "vitest-browser-qwik": "0.3.8"
+    "vitest-browser-qwik": "0.3.11"
   },
   "peerDependencies": {
-    "@qwik.dev/core": ">=2.0.0-beta.0"
+    "@qwik.dev/core": ">=2.0.0-rc.4"
   }
 }

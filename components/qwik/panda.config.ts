@@ -5,7 +5,7 @@ export default defineConfig({
   presets: [preset],
   preflight: true,
   include: ['./src/**/*.{ts,tsx}', './dev/**/*.{ts,tsx}'],
-  jsxFramework: 'qwik',
+  jsxFramework: 'qwikv2',
   plugins: [plugin],
   globalCss: {
     extend: {

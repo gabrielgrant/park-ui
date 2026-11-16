@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { render } from 'vitest-browser-qwik'
-import { ClickCounter, GroupedButtons } from './button-fixtures'
+import { ClickCounter, GroupedButtons } from './button.fixtures'
 
 // user QRL handlers travel: Button component$ prop -> styled inline wrapper
 // -> host <button> element

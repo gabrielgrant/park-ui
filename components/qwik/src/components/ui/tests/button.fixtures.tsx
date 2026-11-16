@@ -21,3 +21,5 @@ export const LoadingButton = () => (
     Save
   </Button>
 )
+
+export const ComponentUnderTest = ClickCounter

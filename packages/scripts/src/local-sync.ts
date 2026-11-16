@@ -41,6 +41,10 @@ const arkQwikPackage = join(arkQwikDir, 'packages', 'qwik')
 const links = () => [
   { path: join(rootDir, 'components/qwik/node_modules/@ark-ui/qwik'), target: arkQwikPackage },
   { path: join(arkQwikDir, 'node_modules/@qwik.dev'), target: join(rootDir, 'components/qwik/node_modules/@qwik.dev') },
+  {
+    path: join(arkQwikDir, 'node_modules/@internationalized'),
+    target: join(rootDir, 'components/qwik/node_modules/@internationalized'),
+  },
 ]
 
 const collectZagPackages = () => {

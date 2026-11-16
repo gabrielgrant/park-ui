@@ -1,6 +1,6 @@
 import { ssrRenderToDom } from '@qwik.dev/core/testing'
 import { describe, expect, it } from 'vitest'
-import { GroupedButtons, LoadingButton } from './button-fixtures'
+import { GroupedButtons, LoadingButton } from './button.fixtures'
 
 describe('Button (styled, SSR)', () => {
   it('propagates group variant props through context', async () => {
