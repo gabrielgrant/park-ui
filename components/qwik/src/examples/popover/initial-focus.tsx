@@ -19,7 +19,7 @@ export const App = () => {
             </Field.Root>
             <Field.Root>
               <Field.Label>Description</Field.Label>
-              <Textarea data-autofocus autoresize placeholder="Describe the issue" />
+              <Textarea data-autofocus fieldSizing="content" placeholder="Describe the issue" />
             </Field.Root>
           </Popover.Body>
           <Popover.Footer>

@@ -37,7 +37,7 @@ const extractRecipeDependencies = (sourceCode: string) => {
     for (const importItem of imports) {
       if (importItem.startsWith('type ')) continue
 
-      const importName = importItem.trim().replace(/Recipe$/, '')
+      const importName = (importItem.split(/\s+as\s+/)[0] ?? '').trim().replace(/Recipe$/, '')
       if (importName) {
         recipes.add(`${toKebabCase(importName)}-recipe`)
       }
