@@ -1,4 +1,4 @@
-import { Slot, component$ } from '@qwik.dev/core'
+import { component$, Slot } from '@qwik.dev/core'
 import { visuallyHidden } from 'styled-system/patterns'
 import * as StyledCheckbox from '@/components/ui/checkbox'
 

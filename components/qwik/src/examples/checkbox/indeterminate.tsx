@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import { Stack } from 'styled-system/jsx'
 import { Checkbox } from '@/components/ui'
 
@@ -17,9 +17,9 @@ export const App = component$(() => {
     <Stack gap="4" alignItems="start">
       <Checkbox.Root
         checked={indeterminate ? 'indeterminate' : allChecked}
-        onCheckedChange$={(e) => {
+        onCheckedChange$={$((e) => {
           values.value = values.value.map((value) => ({ ...value, checked: !!e.checked }))
-        }}
+        })}
       >
         <Checkbox.HiddenInput />
         <Checkbox.Control>
@@ -32,11 +32,11 @@ export const App = component$(() => {
           key={item.value}
           ms="6"
           checked={item.checked}
-          onCheckedChange$={(e) => {
+          onCheckedChange$={$((e) => {
             values.value = values.value.map((value, i) =>
               i === index ? { ...value, checked: !!e.checked } : value,
             )
-          }}
+          })}
         >
           <Checkbox.HiddenInput />
           <Checkbox.Control>
