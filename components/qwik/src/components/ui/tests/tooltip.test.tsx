@@ -1,7 +1,7 @@
 import { ssrRenderToDom } from '@qwik.dev/core/testing'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../button'
-import { Tooltip } from '../tooltip'
+import { Tooltip, type TooltipProps } from '../tooltip'
 import { ComponentUnderTest } from './tooltip.fixtures'
 
 const getClasses = (document: Document, selector: string) =>
@@ -23,7 +23,11 @@ describe('Tooltip (styled, SSR)', () => {
 
   it('renders children inside the trigger and merges triggerProps', async () => {
     const { document } = await ssrRenderToDom(
-      <ComponentUnderTest triggerProps={{ 'data-testid': 'trigger', class: 'custom-trigger' }} />,
+      <ComponentUnderTest
+        triggerProps={
+          { 'data-testid': 'trigger', class: 'custom-trigger' } as TooltipProps['triggerProps']
+        }
+      />,
       { qwikLoader: true },
     )
 
