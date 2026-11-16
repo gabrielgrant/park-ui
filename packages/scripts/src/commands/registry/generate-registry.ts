@@ -12,7 +12,7 @@ const replaceFrameworkInDependencies = (deps: string[], framework: Framework): s
 }
 
 const extractDependencies = (sourceCode: string) => {
-  const importRegex = /import\s+(?:[\w*{}\s,]+\s+from\s+)?['"]([^'"]+)['"]/g
+  const importRegex = /import\s+(?:[\w$*{}\s,]+\s+from\s+)?['"]([^'"]+)['"]/g
   const dependencies = new Set<string>()
 
   // biome-ignore lint/suspicious/noAssignInExpressions: regex exec pattern
@@ -48,7 +48,7 @@ const extractRecipeDependencies = (sourceCode: string) => {
 }
 
 const extractRegistryDependencies = (sourceCode: string, componentName: string) => {
-  const relativeImportRegex = /import\s+(?:[\w*{}\s,]+\s+from\s+)?['"]\.\/([\w-]+)['"]/g
+  const relativeImportRegex = /import\s+(?:[\w$*{}\s,]+\s+from\s+)?['"]\.\/([\w-]+)['"]/g
   const dependencies = new Set<string>()
 
   for (
