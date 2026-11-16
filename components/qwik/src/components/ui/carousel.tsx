@@ -6,11 +6,16 @@ import type { ComponentProps } from 'styled-system/types'
 
 const { withProvider, withContext } = createStyleContext(carousel)
 
-export type RootProps = ComponentProps<typeof Root>
-export const Root = withProvider(Carousel.Root, 'root', {
-  forwardProps: ['page'],
+const StyledRoot = withProvider(Carousel.Root, 'root', {
+  shouldForwardProp: (prop) => prop === 'page',
   defaultProps: { spacing: '16px' },
 })
+type StyledRootProps = ComponentProps<typeof StyledRoot>
+
+export interface RootProps extends Omit<StyledRootProps, 'page'> {
+  page?: number | undefined
+}
+export const Root = (props: RootProps) => <StyledRoot {...(props as StyledRootProps)} />
 export const AutoplayTrigger = withContext(Carousel.AutoplayTrigger, 'autoplayTrigger')
 export const Control = withContext(Carousel.Control, 'control')
 export const Indicator = withContext(Carousel.Indicator, 'indicator')

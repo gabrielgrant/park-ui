@@ -52,4 +52,12 @@ describe('Carousel (styled, SSR)', () => {
 
     expect(document.querySelector('[data-part="root"]')?.getAttribute('style')).toContain('16px')
   })
+
+  it('forwards the controlled page prop to the machine instead of styling it', async () => {
+    const { document } = await ssrRenderToDom(<ComponentUnderTest page={2} />, { qwikLoader: true })
+
+    const indicators = document.querySelectorAll('[data-part="indicator"]')
+    expect(indicators[2]?.hasAttribute('data-current')).toBe(true)
+    expect(document.querySelector('[data-part="root"]')?.getAttribute('class')).not.toMatch(/page_/)
+  })
 })
