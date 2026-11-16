@@ -7,6 +7,7 @@ const { withProvider, withContext } = createStyleContext(radioGroup)
 
 export type RootProps = ComponentProps<typeof Root>
 export type ItemProps = ComponentProps<typeof Item>
+export type ItemHiddenInputProps = ComponentProps<typeof ItemHiddenInput>
 
 export const Root = withProvider(RadioGroup.Root, 'root')
 export const Indicator = withContext(RadioGroup.Indicator, 'indicator')

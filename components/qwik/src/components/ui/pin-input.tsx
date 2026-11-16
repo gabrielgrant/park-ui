@@ -7,7 +7,7 @@ const { withProvider, withContext } = createStyleContext(pinInput)
 
 export type RootProps = ComponentProps<typeof Root>
 export const Root = withProvider(PinInput.Root, 'root', {
-  forwardProps: ['mask'],
+  shouldForwardProp: (prop) => prop === 'mask',
 })
 export const Control = withContext(PinInput.Control, 'control')
 export const HiddenInput = PinInput.HiddenInput

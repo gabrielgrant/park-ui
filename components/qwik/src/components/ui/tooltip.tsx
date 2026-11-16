@@ -8,6 +8,7 @@ const { withRootProvider, withContext } = createStyleContext(tooltip)
 
 type RootProps = ComponentProps<typeof Root>
 type ContentProps = ComponentProps<typeof Content>
+type TriggerProps = ComponentProps<typeof Trigger>
 const Root = withRootProvider(ArkTooltip.Root, {
   defaultProps: { unmountOnExit: true, lazyMount: true },
 })
@@ -22,17 +23,18 @@ export interface TooltipProps extends Omit<RootProps, 'content' | 'children'> {
   children?: JSXOutput
   content: JSXOutput
   contentProps?: ContentProps
+  triggerProps?: TriggerProps
   disabled?: boolean
 }
 
 export const Tooltip = (props: TooltipProps) => {
-  const { showArrow, children, disabled, content, contentProps, ...rootProps } = props
+  const { showArrow, children, disabled, content, contentProps, triggerProps, ...rootProps } = props
 
   if (disabled) return <>{children}</>
 
   return (
     <Root {...rootProps}>
-      <Trigger>{children}</Trigger>
+      <Trigger {...triggerProps}>{children}</Trigger>
       <Positioner>
         <Content {...contentProps}>
           {showArrow && (

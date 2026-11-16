@@ -1,5 +1,6 @@
 import { ColorPicker } from '@ark-ui/qwik/color-picker'
-import { createStyleContext } from 'styled-system/jsx'
+import { cx } from 'styled-system/css'
+import { createStyleContext, styled } from 'styled-system/jsx'
 import { colorPicker } from 'styled-system/recipes'
 import type { ComponentProps } from 'styled-system/types'
 
@@ -22,7 +23,6 @@ export const ChannelSliderValueText = withContext(
 export const Content = withContext(ColorPicker.Content, 'content')
 export const Control = withContext(ColorPicker.Control, 'control')
 export const EyeDropperTrigger = withContext(ColorPicker.EyeDropperTrigger, 'eyeDropperTrigger')
-export const FormatSelect = withContext(ColorPicker.FormatSelect, 'formatSelect')
 export const FormatTrigger = withContext(ColorPicker.FormatTrigger, 'formatTrigger')
 export const HiddenInput = ColorPicker.HiddenInput
 export const Label = withContext(ColorPicker.Label, 'label')
@@ -31,8 +31,19 @@ export const Swatch = withContext(ColorPicker.Swatch, 'swatch')
 export const SwatchGroup = withContext(ColorPicker.SwatchGroup, 'swatchGroup')
 export const SwatchIndicator = withContext(ColorPicker.SwatchIndicator, 'swatchIndicator')
 export const SwatchTrigger = withContext(ColorPicker.SwatchTrigger, 'swatchTrigger')
-export const TransparencyGrid = withContext(ColorPicker.TransparencyGrid, 'transparencyGrid')
 export const Trigger = withContext(ColorPicker.Trigger, 'trigger')
 export const ValueSwatch = ColorPicker.ValueSwatch
 export const ValueText = withContext(ColorPicker.ValueText, 'valueText')
 export const View = withContext(ColorPicker.View, 'view')
+
+const StyledFormatSelect = styled(ColorPicker.FormatSelect)
+export type FormatSelectProps = ComponentProps<typeof StyledFormatSelect>
+export const FormatSelect = (props: FormatSelectProps) => (
+  <StyledFormatSelect {...props} class={cx(colorPicker().formatSelect, props.class)} />
+)
+
+const StyledTransparencyGrid = styled(ColorPicker.TransparencyGrid)
+export type TransparencyGridProps = ComponentProps<typeof StyledTransparencyGrid>
+export const TransparencyGrid = (props: TransparencyGridProps) => (
+  <StyledTransparencyGrid {...props} class={cx(colorPicker().transparencyGrid, props.class)} />
+)

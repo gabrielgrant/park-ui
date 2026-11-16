@@ -18,7 +18,11 @@ export const CompletePinInput = component$(() => {
   const completed = useSignal('')
   return (
     <>
-      <PinInput.Root onValueComplete$={(details) => (completed.value = details.valueAsString)}>
+      <PinInput.Root
+        onValueComplete$={(details) => {
+          completed.value = details.valueAsString
+        }}
+      >
         <PinInput.Label>Pin</PinInput.Label>
         <PinInput.HiddenInput />
         <PinInput.Control>

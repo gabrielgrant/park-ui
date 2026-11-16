@@ -1,5 +1,9 @@
-import { RatingGroup, useRatingGroupContext, useRatingGroupItemContext } from '@ark-ui/qwik/rating-group'
-import { type JSXNode, type JSXOutput, component$, jsx } from '@qwik.dev/core'
+import {
+  RatingGroup,
+  useRatingGroupContext,
+  useRatingGroupItemContext,
+} from '@ark-ui/qwik/rating-group'
+import { type JSXNode, type JSXOutput, Slot, component$, jsx } from '@qwik.dev/core'
 import { createStyleContext } from 'styled-system/jsx'
 import { ratingGroup } from 'styled-system/recipes'
 import type { ComponentProps, HTMLStyledProps } from 'styled-system/types'
@@ -37,10 +41,8 @@ const cloneIcon = (icon: JSXOutput, type: string) => {
   return icon
 }
 
-export const ItemIndicator = component$<ItemIndicatorProps>((props) => {
-  const { icon, ...rest } = props
+const ItemIndicatorState = component$<HTMLStyledProps<'span'>>((props) => {
   const item = useRatingGroupItemContext()
-  const iconNode = icon ?? <StarIcon />
   const stateProps = {
     'data-highlighted': item?.highlighted ? '' : undefined,
     'data-checked': item?.checked ? '' : undefined,
@@ -48,14 +50,30 @@ export const ItemIndicator = component$<ItemIndicatorProps>((props) => {
   }
 
   return (
-    <StyledItemIndicator {...rest} {...stateProps}>
-      {cloneIcon(iconNode, 'bg')}
-      {cloneIcon(iconNode, 'fg')}
+    <StyledItemIndicator {...props} {...stateProps}>
+      <Slot />
     </StyledItemIndicator>
   )
 })
 
+export const ItemIndicator = (props: ItemIndicatorProps) => {
+  const { icon, ...rest } = props
+  const iconNode = icon ?? <StarIcon />
+
+  return (
+    <ItemIndicatorState {...rest}>
+      {cloneIcon(iconNode, 'bg')}
+      {cloneIcon(iconNode, 'fg')}
+    </ItemIndicatorState>
+  )
+}
+
 export interface ItemsProps extends Omit<ComponentProps<typeof Item>, 'index'> {
+  /**
+   * Rendered twice per item (background + foreground). Items is a component$,
+   * so the icon must be serializable: a host element (`<svg>`) or a
+   * component$ — not a plain function component.
+   */
   icon?: JSXOutput | undefined
 }
 

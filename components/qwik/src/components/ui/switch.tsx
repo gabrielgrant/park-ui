@@ -24,45 +24,74 @@ export const Control = (props: ControlProps) => {
 export type { SwitchCheckedChangeDetails as CheckedChangeDetails } from '@ark-ui/qwik/switch'
 
 const StyledIndicator = withContext(ark.span, 'indicator')
-export interface IndicatorProps extends ComponentProps<typeof StyledIndicator> {
-  fallback?: JSXOutput | undefined
-}
+const StyledThumbIndicator = styled(ark.span)
 
-export const Indicator = component$<IndicatorProps>((props) => {
-  const { fallback, ...rest } = props
+const useIndicatorState = () => {
   const api = useSwitchContext()
   const checked = Boolean(api?.checked)
-  const stateProps = { 'data-checked': checked ? '' : undefined }
-  const childrenProps = { hidden: !checked }
+  return {
+    stateProps: { 'data-checked': checked ? '' : undefined },
+    checkedProps: { hidden: !checked },
+    fallbackProps: { hidden: checked },
+  }
+}
 
+const IndicatorState = component$<ComponentProps<typeof StyledIndicator>>((props) => {
+  const { stateProps, checkedProps, fallbackProps } = useIndicatorState()
   return (
-    <StyledIndicator {...rest} {...stateProps}>
-      <styled.span display="contents" {...childrenProps}>
+    <StyledIndicator {...props} {...stateProps}>
+      <styled.span display="contents" {...checkedProps}>
         <Slot />
       </styled.span>
-      {!checked && fallback}
+      <styled.span display="contents" {...fallbackProps}>
+        <Slot name="fallback" />
+      </styled.span>
     </StyledIndicator>
   )
 })
 
-const StyledThumbIndicator = styled(ark.span)
+const ThumbIndicatorState = component$<ComponentProps<typeof StyledThumbIndicator>>((props) => {
+  const { stateProps, checkedProps, fallbackProps } = useIndicatorState()
+  return (
+    <StyledThumbIndicator {...props} {...stateProps}>
+      <styled.span display="contents" {...checkedProps}>
+        <Slot />
+      </styled.span>
+      <styled.span display="contents" {...fallbackProps}>
+        <Slot name="fallback" />
+      </styled.span>
+    </StyledThumbIndicator>
+  )
+})
+
+export interface IndicatorProps extends ComponentProps<typeof StyledIndicator> {
+  fallback?: JSXOutput | undefined
+}
+
+export const Indicator = (props: IndicatorProps) => {
+  const { fallback, children, ...rest } = props
+  return (
+    <IndicatorState {...rest}>
+      {children}
+      <span q:slot="fallback" style={{ display: 'contents' }}>
+        {fallback}
+      </span>
+    </IndicatorState>
+  )
+}
+
 export interface ThumbIndicatorProps extends ComponentProps<typeof StyledThumbIndicator> {
   fallback?: JSXOutput | undefined
 }
 
-export const ThumbIndicator = component$<ThumbIndicatorProps>((props) => {
-  const { fallback, ...rest } = props
-  const api = useSwitchContext()
-  const checked = Boolean(api?.checked)
-  const stateProps = { 'data-checked': checked ? '' : undefined }
-  const childrenProps = { hidden: !checked }
-
+export const ThumbIndicator = (props: ThumbIndicatorProps) => {
+  const { fallback, children, ...rest } = props
   return (
-    <StyledThumbIndicator {...rest} {...stateProps}>
-      <styled.span display="contents" {...childrenProps}>
-        <Slot />
-      </styled.span>
-      {!checked && fallback}
-    </StyledThumbIndicator>
+    <ThumbIndicatorState {...rest}>
+      {children}
+      <span q:slot="fallback" style={{ display: 'contents' }}>
+        {fallback}
+      </span>
+    </ThumbIndicatorState>
   )
-})
+}

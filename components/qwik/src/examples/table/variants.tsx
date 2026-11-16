@@ -15,13 +15,13 @@ export const App = () => {
             </Table.Row>
           </Table.Head>
           <Table.Body>
-              {items.map((product) => (
-                <Table.Row key={product.id}>
-                  <Table.Cell>{product.name}</Table.Cell>
-                  <Table.Cell>{product.category}</Table.Cell>
-                  <Table.Cell textAlign="right">{product.price}</Table.Cell>
-                </Table.Row>
-              ))}
+            {items.map((product) => (
+              <Table.Row key={product.id}>
+                <Table.Cell>{product.name}</Table.Cell>
+                <Table.Cell>{product.category}</Table.Cell>
+                <Table.Cell textAlign="right">{product.price}</Table.Cell>
+              </Table.Row>
+            ))}
           </Table.Body>
           <Table.Foot>
             <Table.Row>

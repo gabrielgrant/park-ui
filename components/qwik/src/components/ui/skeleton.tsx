@@ -22,7 +22,7 @@ export const SkeletonText = (props: SkeletonTextProps) => {
   const { noOfLines = 3, gap, rootProps, ...skeletonProps } = props
 
   return (
-    <Stack gap={gap} width="full" {...rootProps}>
+    <Stack gap={gap as StackProps['gap']} width="full" {...rootProps}>
       {[...Array(noOfLines).keys()].map((index) => (
         <Skeleton
           key={index}

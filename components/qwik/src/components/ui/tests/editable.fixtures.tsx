@@ -20,7 +20,12 @@ export const CommitEditable = component$(() => {
   const committed = useSignal('')
   return (
     <>
-      <Editable.Root defaultValue="Hello" onValueCommit$={(details) => (committed.value = details.value)}>
+      <Editable.Root
+        defaultValue="Hello"
+        onValueCommit$={(details) => {
+          committed.value = details.value
+        }}
+      >
         <Editable.Label>Name</Editable.Label>
         <Editable.Area>
           <Editable.Preview />

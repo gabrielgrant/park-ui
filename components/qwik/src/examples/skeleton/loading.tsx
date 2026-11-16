@@ -10,7 +10,12 @@ export const App = component$(() => {
       <Skeleton loading={loading.value}>
         <Text>Park UI rocks 🚀</Text>
       </Skeleton>
-      <Button variant="surface" onClick$={() => (loading.value = !loading.value)}>
+      <Button
+        variant="surface"
+        onClick$={() => {
+          loading.value = !loading.value
+        }}
+      >
         Toggle
       </Button>
     </Stack>
