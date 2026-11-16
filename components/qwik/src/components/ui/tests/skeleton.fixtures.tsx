@@ -7,7 +7,7 @@ export const ComponentUnderTest = () => (
       noOfLines={2}
       gap="3"
       data-testid="line"
-      rootProps={{ 'data-testid': 'text-root' }}
+      rootProps={{ id: 'text-root' }}
     />
     <Skeleton height="5" variant="shine" data-testid="block" />
   </div>

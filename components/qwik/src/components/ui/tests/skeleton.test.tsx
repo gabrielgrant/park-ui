@@ -21,7 +21,7 @@ describe('Skeleton (styled, SSR)', () => {
 
   it('renders noOfLines skeleton lines inside a stack', async () => {
     const { document } = await ssrRenderToDom(<ComponentUnderTest />, { qwikLoader: true })
-    const root = document.querySelector('[data-testid="text-root"]')
+    const root = document.querySelector('#text-root')
     const lines = document.querySelectorAll('[data-testid="line"]')
     expect(root).toBeTruthy()
     expect(root?.getAttribute('class')).toContain('gap_3')
