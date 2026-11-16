@@ -1,12 +1,31 @@
 import { Box } from 'styled-system/jsx'
-import { FileIcon, FileUpload, Icon } from '@/components/ui'
+import { FileUpload, Icon } from '@/components/ui'
+
+const UploadIcon = () => (
+  <svg
+    aria-hidden="true"
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M12 3v12" />
+    <path d="m17 8-5-5-5 5" />
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+  </svg>
+)
 
 export const App = () => {
   return (
     <FileUpload.Root>
       <FileUpload.HiddenInput />
       <FileUpload.Dropzone>
-        <Icon as={FileIcon} color="fg.muted" size="lg" mb="4" />
+        <Icon as={UploadIcon} color="fg.muted" size="lg" mb="4" />
         <Box>Drag and drop files here</Box>
         <Box color="fg.muted">.png, .jpg up to 5MB</Box>
       </FileUpload.Dropzone>

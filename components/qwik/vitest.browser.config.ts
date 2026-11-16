@@ -39,6 +39,13 @@ export default defineConfig({
     // these ship Qwik $() QRLs as TS source — esbuild pre-bundling would
     // bypass the Qwik optimizer and break serialization at runtime
     exclude: ['@ark-ui/qwik', '@zag-js/qwik'],
+    // CJS/ESM deps reached only through the linked zag checkout; if vite
+    // discovers them mid-run it re-optimizes and reloads the page, which
+    // fails whichever test file is loading (cold-cache flake)
+    include: [
+      '@ark-ui/qwik > @zag-js/popper > @floating-ui/dom',
+      '@ark-ui/qwik > @zag-js/number-input > @internationalized/number',
+    ],
   },
   server: {
     fs: {

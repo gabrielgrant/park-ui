@@ -648,6 +648,33 @@ Decision log (append dated entries; S1's contract verdict lands here first):
   and every solid example. Per-batch deviations are in the batch commit
   messages; the recurring ones are captured as rules in Part 5b below.
 
+- **2026-11-16 — integration gate GREEN.** TypeScript 6.0.3 (matches
+  ark/zag; zag sources need the TS 6 DOM lib — `FocusOptions.focusVisible`);
+  `baseUrl` removed (TS 6 deprecation) with an explicit `styled-system/*`
+  path. Full gate on all 63 components: tsc 0 errors (569 files), biome
+  clean, headless 261/261 incl. the SSR-resume guard over every fixture,
+  browser 49 passed / 2 skipped, stable across 2 warm + 2 cold-cache runs.
+  Cold-cache flake fixed: vite discovered `@floating-ui/dom` and
+  `@internationalized/number` (reached only via the linked zag checkout)
+  mid-run and reloaded the page, failing whichever file was loading — now
+  pre-declared in `optimizeDeps.include` with nested `a > b` specifiers.
+  `registry.json` generated (63 ui + 55 recipe items, no react/solid/lucide
+  references); two generator bugs fixed on the way (`$` in import
+  specifiers; aliased recipe imports). React/solid registries regenerate
+  semantically identical.
+- **2026-11-16 — decisions.**
+  - `icons.tsx` stays plain function components holding only the 15 icons
+    components use (it is copied into every user project). Examples needing
+    other lucide icons inline a local svg — the honest equivalent of react
+    examples importing from `lucide-react`. Where a `component$` prop needs
+    an icon element, call it: `copied={CheckIcon({})}` (a plain host-svg
+    node serializes; `<CheckIcon/>` would hit Q34).
+  - `registry:build qwik` (writing `website/public/registry/qwik/`) is NOT
+    run/committed: that is the deploy step, gated on G2.
+  - `./examples` export removed from package.json (react/solid use it for
+    Storybook / live previews; qwik has neither — the website reads example
+    source files directly).
+
 ## Part 5b — Qwik porting rules learned in Phases 2–3
 
 These came out of the batch ports; follow them for any new component.

@@ -15,7 +15,6 @@
     "registry:build": "scripts registry build qwik"
   },
   "exports": {
-    "./examples": "./src/examples/index.ts",
     ".": "./src/components/ui/index.ts"
   },
   "devDependencies": {
