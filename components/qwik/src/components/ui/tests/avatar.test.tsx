@@ -65,4 +65,21 @@ describe('Avatar (styled, SSR)', () => {
     expect(document.querySelector('[data-testid="icon-fallback"] svg')).toBeTruthy()
     expect(document.querySelector('[data-testid="children-fallback"]')?.textContent).toBe('+3')
   })
+
+  it('renders the image inside a button without an unclaimed slot', async () => {
+    const { document } = await ssrRenderToDom(
+      <Avatar.Root>
+        <button type="button">
+          <Avatar.Image data-testid="image" src="https://example.com/avatar.png" />
+          <Avatar.Fallback name="Christian Busch" />
+        </button>
+      </Avatar.Root>,
+      { qwikLoader: true },
+    )
+
+    expect(document.querySelector('button [data-testid="image"]')?.getAttribute('class')).toContain(
+      'avatar__image',
+    )
+    expect(document.querySelector('button q\\:template')).toBeFalsy()
+  })
 })

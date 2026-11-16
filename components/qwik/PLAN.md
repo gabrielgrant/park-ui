@@ -640,6 +640,90 @@ Decision log (append dated entries; S1's contract verdict lands here first):
 - **2026-11-16 — parallel porting.** Test configs take `VITE_CACHE_DIR` and
   `VITEST_BROWSER_PORT` env overrides so several suites can run side by side
   in one checkout.
+- **2026-11-16 — Phase 2 + 3 ported (all 63 components).** Six parallel
+  batches (A presentational ×17, B buttons/fields ×11, C selection ×9,
+  D disclosure/overlays ×9, E collections/menus ×7, F complex widgets ×5)
+  plus the four pilots. Every component: wrapper, `*.fixtures.tsx`,
+  headless SSR tests, SSR-resume guard, browser tests for interactive ones,
+  and every solid example. Per-batch deviations are in the batch commit
+  messages; the recurring ones are captured as rules in Part 5b below.
+
+## Part 5b — Qwik porting rules learned in Phases 2–3
+
+These came out of the batch ports; follow them for any new component.
+
+- **No triggers wrapping buttons.** Ark triggers render `<button>`; nesting
+  `Button`/`CloseButton`/`IconButton`/`Link` inside is a Q12 content-model
+  error, and there is no `asChild`. Style the trigger itself with the recipe:
+  `<X.Trigger class={button({ variant: 'outline' })}>`.
+- **Parts that never render children can't go through createStyleContext
+  inside `<select>`/`<button>`.** The panda StyleConsumer always passes
+  `children: <Slot/>`; an unclaimed slot leaves `<q:template>` → Q12. Use
+  `styled(ArkPart)` plus the slot class (`cx(recipe().slot, class)`) instead
+  (ColorPicker.FormatSelect/TransparencyGrid, DatePicker.Month/YearSelect,
+  Avatar.Image).
+- **Ark `<Slot>fallback</Slot>` defaults vanish when wrapped** (same cause):
+  pass the default via `defaultProps: { children: … }`
+  (Field.RequiredIndicator `*`).
+- **`forwardProps` only forwards recipe-variant keys.** A prop whose name is
+  also a CSS property (pin-input `mask`, carousel `page`) is turned into a
+  class. Use `shouldForwardProp: (p) => p === 'mask'`.
+- **No JSX props into `component$` when the JSX's type is a plain function
+  component** — SSR fails with `Q34: Cannot serialize function`. Icons in
+  `icons.tsx` are plain functions. Use named slots, require a host `<svg>`
+  or a `component$`, or render the prop from an inline (non-`component$`)
+  wrapper (loader, tooltip, input-group).
+- **Inline wrappers are the escape hatch for children branching.** A plain
+  arrow wrapper sees `props.children` as ordinary JSX and can branch like
+  solid does; it just can't call hooks.
+- **Callbacks on style-context parts need explicit `$()`** in user code
+  (`onValueChange$={$((e) => …)}`) until the panda d.ts types parts as
+  Qwik `Component` (verified fix — see upstream list).
+- **`initialFocusEl`/`finalFocusEl` functions crash SSR (Q34)** — examples
+  use `data-autofocus`.
+- **`dangerouslySetInnerHTML` on an ark part trips a Qwik internal
+  assert** — put it on an inner element.
+- **Browser tests:** after rendered text changes, `screen.*` locators from
+  vitest-browser-qwik can go stale; use `page` from `vitest/browser`.
+  Overlay tests pass `unmountOnExit={false}` (see upstream bug). domino
+  (headless) returns `undefined` for no-match `querySelector` and
+  non-iterable `querySelectorAll`.
+
+## Part 5c — Upstream issues found (to file)
+
+Panda fork (`qwikv2` createStyleContext):
+1. d.ts types parts as `FunctionComponent<P>` → `$` callback props reject
+   bare arrows (TS2322). Fix verified locally: type them as Qwik
+   `Component<P>` (= `FunctionComponent<PublicProps<P>>`).
+2. StyleConsumer/StyleProvider always pass `children: jsx(Slot)` → lost
+   ark fallbacks and Q12 `<q:template>` inside `<select>`/`<button>`. Pass
+   children only when the caller supplied some.
+3. `forwardProps` ignores non-variant keys (CSS-named props become classes).
+4. `cx` keeps only strings → a Qwik `ClassList` (array/object) passed as
+   `class` is silently dropped.
+5. `HTMLStyledProps`/pattern props reject `data-*` keys in object literals.
+
+Ark / zag:
+6. Closing an `unmountOnExit` overlay throws `NotFoundError: Failed to
+   execute 'insertBefore' on 'Node'` (Qwik cursor flush) — reproduces on a
+   raw ark `Dialog.Root unmountOnExit`. Park UI defaults
+   `lazyMount`+`unmountOnExit` on dialog/drawer/popover/tooltip, so every
+   close logs it (reopening works).
+7. `Collapsible.Indicator` renders a `div` (should be `span` per R11 so it
+   can sit in the trigger).
+8. Triggers are hard-coded `<button>` with no `asChild` (forces the
+   restructures above).
+9. `initialFocusEl`/`finalFocusEl` need a serializable form (QRL/Signal).
+10. pin-input server render reports count 0 (`aria-label="pin code 1 of 0"`,
+    `data-complete` on empty inputs); corrects on the client.
+11. Field.Textarea has no `autoresize`; RequiredIndicator has no `fallback`.
+12. Toaster's `toaster`/`renderToast` are `noSerialize` → `undefined` after
+    a real SSR resume (ark's documented caveat).
+13. zag sources need TS ≥ 6 DOM lib (`FocusOptions.focusVisible`).
+
+Harness:
+14. `renderSSR` + adapter wake replay → Q24 / hang (ark Part 5 #1); two
+    `renderSSR` in one file → Q24.
 
 ---
 

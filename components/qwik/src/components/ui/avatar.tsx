@@ -1,5 +1,5 @@
 import { Avatar } from '@ark-ui/qwik/avatar'
-import type { JSXOutput } from '@qwik.dev/core'
+import { type JSXOutput, type PropsOf, Slot, component$ } from '@qwik.dev/core'
 import { createStyleContext } from 'styled-system/jsx'
 import { avatar } from 'styled-system/recipes'
 import type { ComponentProps } from 'styled-system/types'
@@ -9,7 +9,14 @@ const { withProvider, withContext } = createStyleContext(avatar)
 
 export type RootProps = ComponentProps<typeof Root>
 export const Root = withProvider(Avatar.Root, 'root')
-export const Image = withContext(Avatar.Image, 'image', {
+const ImageBase = component$<PropsOf<typeof Avatar.Image>>((props) => (
+  <>
+    <Avatar.Image {...props} />
+    <Slot />
+  </>
+))
+
+export const Image = withContext(ImageBase, 'image', {
   defaultProps: {
     draggable: false,
     referrerPolicy: 'no-referrer',
