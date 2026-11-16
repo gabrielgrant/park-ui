@@ -1,4 +1,4 @@
-import { createListCollection } from '@ark-ui/qwik/combobox'
+import { type ComboboxRootProps, createListCollection } from '@ark-ui/qwik/combobox'
 import { $, component$, useSignal } from '@qwik.dev/core'
 import * as Combobox from '../combobox'
 
@@ -16,7 +16,7 @@ const frameworks: Framework[] = [
 
 const collection = createListCollection<Framework>({ items: frameworks })
 
-export const ComponentUnderTest = (props: Omit<Combobox.RootProps, 'collection'>) => (
+export const ComponentUnderTest = (props: Omit<ComboboxRootProps<Framework>, 'collection'> & Combobox.RootProps) => (
   <Combobox.Root collection={collection} {...props}>
     <Combobox.Label data-testid="label">Framework</Combobox.Label>
     <Combobox.Control data-testid="control">

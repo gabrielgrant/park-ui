@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import * as PinInput from '../pin-input'
 
 export const ComponentUnderTest = (props: PinInput.RootProps) => (
@@ -19,9 +19,9 @@ export const CompletePinInput = component$(() => {
   return (
     <>
       <PinInput.Root
-        onValueComplete$={(details) => {
+        onValueComplete$={$((details) => {
           completed.value = details.valueAsString
-        }}
+        })}
       >
         <PinInput.Label>Pin</PinInput.Label>
         <PinInput.HiddenInput />

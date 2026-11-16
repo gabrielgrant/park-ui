@@ -3,7 +3,7 @@ import { Stack } from 'styled-system/jsx'
 import { Button, Splitter } from '@/components/ui'
 
 export const App = component$(() => {
-  const size = useSignal([15, 85])
+  const size = useSignal([25, 75])
   const isCollapsed = size.value[0] <= 5
 
   return (

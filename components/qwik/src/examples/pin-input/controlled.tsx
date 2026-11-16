@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import { PinInput } from '@/components/ui'
 
 export const App = component$(() => {
@@ -6,9 +6,9 @@ export const App = component$(() => {
   return (
     <PinInput.Root
       value={value.value}
-      onValueChange$={(e) => {
+      onValueChange$={$((e) => {
         value.value = e.value
-      }}
+      })}
     >
       <PinInput.HiddenInput />
       <PinInput.Control>

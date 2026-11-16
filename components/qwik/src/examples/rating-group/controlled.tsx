@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import { RatingGroup } from '@/components/ui'
 
 export const App = component$(() => {
@@ -7,9 +7,9 @@ export const App = component$(() => {
     <RatingGroup.Root
       count={5}
       value={value.value}
-      onValueChange$={(e) => {
+      onValueChange$={$((e) => {
         value.value = e.value
-      }}
+      })}
     >
       <RatingGroup.HiddenInput />
       <RatingGroup.Control />

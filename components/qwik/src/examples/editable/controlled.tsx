@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import { Editable } from '@/components/ui'
 
 export const App = component$(() => {
@@ -6,9 +6,9 @@ export const App = component$(() => {
   return (
     <Editable.Root
       value={name.value}
-      onValueChange$={(e) => {
+      onValueChange$={$((e) => {
         name.value = e.value
-      }}
+      })}
       placeholder="Click to edit"
     >
       <Editable.Preview />

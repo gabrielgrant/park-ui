@@ -4,10 +4,9 @@ export const App = () => {
   return (
     <Menu.Root positioning={{ placement: 'right-end' }}>
       <Avatar.Root size="lg">
-        <Menu.Trigger rounded="full" width="full" height="full">
-          <Avatar.Image src="https://avatars.githubusercontent.com/u/1846056?v=4" />
-          <Avatar.Fallback name="Christian Busch" />
-        </Menu.Trigger>
+        <Avatar.Image src="https://avatars.githubusercontent.com/u/1846056?v=4" />
+        <Avatar.Fallback name="Christian Busch" />
+        <Menu.Trigger position="absolute" inset="0" rounded="full" aria-label="Open user menu" />
       </Avatar.Root>
       <Menu.Positioner>
         <Menu.Content>

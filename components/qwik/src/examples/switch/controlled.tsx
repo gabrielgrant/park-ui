@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import { Switch } from '@/components/ui'
 
 export const App = component$(() => {
@@ -6,9 +6,9 @@ export const App = component$(() => {
   return (
     <Switch.Root
       checked={checked.value}
-      onCheckedChange$={(e) => {
+      onCheckedChange$={$((e) => {
         checked.value = e.checked
-      }}
+      })}
     >
       <Switch.Control>
         <Switch.Thumb />

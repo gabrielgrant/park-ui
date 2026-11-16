@@ -39,11 +39,11 @@ export const View = withContext(ColorPicker.View, 'view')
 const StyledFormatSelect = styled(ColorPicker.FormatSelect)
 export type FormatSelectProps = ComponentProps<typeof StyledFormatSelect>
 export const FormatSelect = (props: FormatSelectProps) => (
-  <StyledFormatSelect {...props} class={cx(colorPicker().formatSelect, props.class)} />
+  <StyledFormatSelect {...props} class={cx(colorPicker().formatSelect, props.class as string | undefined)} />
 )
 
 const StyledTransparencyGrid = styled(ColorPicker.TransparencyGrid)
 export type TransparencyGridProps = ComponentProps<typeof StyledTransparencyGrid>
 export const TransparencyGrid = (props: TransparencyGridProps) => (
-  <StyledTransparencyGrid {...props} class={cx(colorPicker().transparencyGrid, props.class)} />
+  <StyledTransparencyGrid {...props} class={cx(colorPicker().transparencyGrid, props.class as string | undefined)} />
 )

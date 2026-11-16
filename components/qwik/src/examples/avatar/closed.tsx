@@ -17,7 +17,7 @@ export const Avatar = (props: AvatarProps) => {
   return (
     <StyledAvatar.Root {...rest}>
       <StyledAvatar.Fallback name={name}>{fallback || icon}</StyledAvatar.Fallback>
-      <StyledAvatar.Image src={src} srcSet={srcSet} loading={loading} />
+      <StyledAvatar.Image src={src} srcset={srcSet} loading={loading} />
       {children}
     </StyledAvatar.Root>
   )

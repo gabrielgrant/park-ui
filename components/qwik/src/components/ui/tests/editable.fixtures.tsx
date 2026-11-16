@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import * as Editable from '../editable'
 
 export const ComponentUnderTest = (props: Editable.RootProps) => (
@@ -22,9 +22,9 @@ export const CommitEditable = component$(() => {
     <>
       <Editable.Root
         defaultValue="Hello"
-        onValueCommit$={(details) => {
+        onValueCommit$={$((details) => {
           committed.value = details.value
-        }}
+        })}
       >
         <Editable.Label>Name</Editable.Label>
         <Editable.Area>

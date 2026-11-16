@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core'
+import { $, component$, useSignal } from '@qwik.dev/core'
 import * as Menu from '../menu'
 
 export const ComponentUnderTest = (props: Menu.RootProps) => (
@@ -38,11 +38,11 @@ export const CheckboxMenu = component$(() => {
     <Menu.Root
       defaultOpen
       closeOnSelect={false}
-      onSelect$={(details) => {
+      onSelect$={$((details: Menu.SelectionDetails) => {
         checked.value = checked.value.includes(details.value)
           ? checked.value.filter((value) => value !== details.value)
           : [...checked.value, details.value]
-      }}
+      })}
     >
       <Menu.Trigger data-testid="trigger">Settings</Menu.Trigger>
       <Menu.Positioner>
@@ -74,9 +74,9 @@ export const SelectionLog = component$(() => {
       <span data-testid="selected">{selected.value}</span>
       <Menu.Root
         unmountOnExit={false}
-        onSelect$={(details) => {
+        onSelect$={$((details: Menu.SelectionDetails) => {
           selected.value = details.value
-        }}
+        })}
       >
         <Menu.Trigger data-testid="trigger">
           File
