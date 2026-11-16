@@ -10,7 +10,9 @@ const StyledRoot = withProvider(PinInput.Root, 'root', {
   shouldForwardProp: (prop) => prop === 'mask',
 })
 
-export type RootProps = Omit<ComponentProps<typeof StyledRoot>, 'mask'> & { mask?: boolean | undefined }
+export type RootProps = Omit<ComponentProps<typeof StyledRoot>, 'mask'> & {
+  mask?: boolean | undefined
+}
 export const Root = StyledRoot as FunctionComponent<RootProps>
 export const Control = withContext(PinInput.Control, 'control')
 export const HiddenInput = PinInput.HiddenInput
